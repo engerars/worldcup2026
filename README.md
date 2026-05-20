@@ -1,4 +1,4 @@
-# ⚽ FIFA World Cup 2026 API — Complete REST API for the Biggest World Cup Ever
+# ⚽ FIFA World Cup 2026 API — Free Open-Source REST API with Live Scores
 
 <!-- GitHub Visitor Counter -->
 ![Visitor Count](https://komarev.com/ghpvc/?username=rezarahiminia-worldcup2026&label=Visitors&color=brightgreen&style=flat-square)
@@ -9,11 +9,43 @@
 [![Swagger](https://img.shields.io/badge/Swagger-OpenAPI%203.0-orange?logo=swagger)](https://swagger.io/)
 [![License](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
 [![API Version](https://img.shields.io/badge/API%20Version-1.0.5-blue)]()
-[![API Status](https://img.shields.io/badge/API-Live-brightgreen)](http://worldcup26.ir:3050)
+[![API Status](https://img.shields.io/badge/API-Live-brightgreen)](https://worldcup26.ir)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/rezarahiminia/worldcup2026/pulls)
 
-> 🏆 **The first-ever 48-team FIFA World Cup — Full REST API with live scores, 104 matches, 16 stadiums, 12 groups, and real-time updates.**
+> 🏆 **The first-ever 48-team FIFA World Cup — Free REST API with live scores, 104 matches, 16 stadiums, 12 groups, and real-time updates. No API key required for read access.**
 
-A comprehensive, open-source REST API providing real-time data for the **2026 FIFA World Cup**, hosted across **United States 🇺🇸, Mexico 🇲🇽 & Canada 🇨🇦**. Access teams, groups, matches, stadiums, live scores, and standings — perfect for developers building World Cup apps, dashboards, widgets, and bots.
+A comprehensive, **free and open-source** REST API providing real-time data for the **2026 FIFA World Cup**, hosted across **United States 🇺🇸, Mexico 🇲🇽 & Canada 🇨🇦**. Access teams, groups, matches, stadiums, live scores, and standings — perfect for developers building World Cup apps, dashboards, widgets, bots, and data visualizations.
+
+### 🎯 Why Use This API?
+
+| Feature | Details |
+|---------|---------|
+| 💰 **100% Free** | No payment, no credit card, no hidden fees |
+| 🔓 **Open Source** | Full source code — fork, modify, self-host |
+| 🔴 **Live Scores** | Real-time match updates during the tournament |
+| 📊 **Complete Data** | 48 teams, 12 groups, 104 matches, 16 stadiums |
+| 🌍 **Multilingual** | English & Persian (Farsi) team/stadium names |
+| 📖 **Swagger Docs** | Interactive try-it-out API documentation |
+| ⚡ **Fast** | Express.js + MongoDB + compression + caching |
+| 🔗 **REST + JSON** | Standard REST API — works with any language |
+
+### ⚡ Quick Example
+
+```bash
+# Get all World Cup 2026 matches (no auth needed for demo)
+curl https://worldcup26.ir/get/games
+
+# Get group standings
+curl https://worldcup26.ir/get/groups
+
+# Get all 48 teams
+curl https://worldcup26.ir/get/teams
+
+# Get all 16 stadiums
+curl https://worldcup26.ir/get/stadiums
+```
+
+> 📖 **Full documentation:** [worldcup26.ir/api-docs](https://worldcup26.ir/api-docs/)
 
 ---
 
@@ -624,6 +656,18 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+### 💡 Use Cases & Project Ideas
+
+Built something with this API? Open a PR to add it here!
+
+- 📱 **Mobile App** — Build a World Cup tracker app (React Native, Flutter)
+- 📊 **Dashboard** — Live score dashboard with charts and predictions
+- 🤖 **Discord/Telegram Bot** — Match notifications and score updates
+- 📈 **Data Visualization** — D3.js charts of goals, standings, team stats
+- 🎮 **Prediction Game** — Let users predict match outcomes
+- 🔔 **Push Notifications** — Alert service for favorite team matches
+- 📰 **Widget** — Embeddable World Cup widget for websites
+
 ---
 
 ## 📄 License
@@ -634,8 +678,8 @@ This project is licensed under the ISC License — see the [LICENSE](LICENSE) fi
 
 ## 🔗 Related Links
 
-- 🌐 [Live Website](http://worldcup26.ir:3050)
-- 📖 [API Swagger Docs](http://worldcup26.ir:3050/api-docs/)
+- 🌐 [Live Website](https://worldcup26.ir)
+- 📖 [API Swagger Docs](https://worldcup26.ir/api-docs/)
 - 💻 [GitHub Repository](https://github.com/rezarahiminia/worldcup2026)
 - 🌐 [FIFA Official Website](https://www.fifa.com/fifaplus/en/tournaments/mens/worldcup/canadamexicousa2026)
 - 🏆 [World Cup 2026 Official](https://www.fifa.com/worldcup/)
@@ -661,5 +705,5 @@ For questions, issues, or suggestions, please open an issue on GitHub.
 ---
 
 <p align="center">
-  <b>Keywords:</b> FIFA World Cup 2026 API, World Cup REST API, Soccer API, Football API, FIFA API, World Cup 2026 Data, Live Soccer Scores, World Cup Live Scores API, Node.js Football API, Express.js Sports API, MongoDB Sports Database, 2026 World Cup Teams API, World Cup Groups API, World Cup Matches API, World Cup Stadiums API, USA Mexico Canada World Cup, 48 Team World Cup, OpenAPI Football, Swagger Sports API, Free World Cup API, Open Source Football API, Real-time Soccer Scores, JWT Authentication API, World Cup 2026 Developer API
+  <b>Keywords:</b> FIFA World Cup 2026 API, free World Cup API, free football API, free soccer API, World Cup REST API, World Cup live scores API, live soccer scores API, free sports data API, open source football API, FIFA 2026 API, World Cup 2026 data, World Cup 2026 schedule API, World Cup 2026 fixtures, World Cup 2026 results, World Cup 2026 groups, World Cup 2026 standings, World Cup 2026 teams, World Cup 2026 stadiums, 48 team World Cup, Node.js football API, Express.js sports API, MongoDB sports database, Swagger OpenAPI sports, real-time match scores, World Cup bracket, soccer data API free, football data API, World Cup JSON data, USA Mexico Canada World Cup, World Cup developer API, sports API 2026, World Cup 2026 live results, free live score API, World Cup prediction API, football fixtures API, soccer standings API
 </p>
