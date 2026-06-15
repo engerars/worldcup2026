@@ -1,59 +1,31 @@
 const mongoose = require('mongoose');
 const packageJson = require('../package.json');
+const { loadEnvConfig } = require('../config/env');
 
 module.exports = (app) => {
-    
-    /**
-     * @swagger
-     * /health:
-     *   get:
-     *     summary: Health check endpoint
-     *     description: Check the health status of the API and database connection
-     *     tags: [Health]
-     *     security: []
-     *     responses:
-     *       200:
-     *         description: Service is healthy
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 status:
-     *                   type: string
-     *                   example: healthy
-     *                 timestamp:
-     *                   type: string
-     *                   format: date-time
-     *                 uptime:
-     *                   type: number
-     *                   description: Server uptime in seconds
-     *                 version:
-     *                   type: string
-     *                   example: 1.0.5
-     *                 database:
-     *                   type: object
-     *                   properties:
-     *                     status:
-     *                       type: string
-     *                       example: connected
-     *                     name:
-     *                       type: string
-     *       503:
-     *         description: Service is unhealthy
-     */
     app.get('/health', async (req, res) => {
         try {
-            // Check MongoDB connection
-            const dbStatus = mongoose.connection.readyState;
-            const dbStatusText = {
-                0: 'disconnected',
-                1: 'connected',
-                2: 'connecting',
-                3: 'disconnecting'
-            }[dbStatus] || 'unknown';
+            const config = loadEnvConfig();
+            const useFileStorage = config.STORAGE_MODE === 'file';
 
-            const isHealthy = dbStatus === 1;
+            let database;
+            if (useFileStorage) {
+                database = { status: 'file', name: 'public/data + IndexedDB (client)' };
+            } else {
+                const dbStatus = mongoose.connection.readyState;
+                const dbStatusText = {
+                    0: 'disconnected',
+                    1: 'connected',
+                    2: 'connecting',
+                    3: 'disconnecting'
+                }[dbStatus] || 'unknown';
+                database = {
+                    status: dbStatusText,
+                    name: mongoose.connection.name || 'N/A'
+                };
+            }
+
+            const isHealthy = useFileStorage || mongoose.connection.readyState === 1;
 
             const healthData = {
                 status: isHealthy ? 'healthy' : 'unhealthy',
@@ -61,20 +33,15 @@ module.exports = (app) => {
                 uptime: process.uptime(),
                 version: packageJson.version,
                 environment: process.env.NODE_ENV || 'development',
-                database: {
-                    status: dbStatusText,
-                    name: mongoose.connection.name || 'N/A'
-                },
+                storage: useFileStorage ? 'file' : 'mongodb',
+                database,
                 memory: {
                     used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
                     total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
                 }
             };
 
-            // Return 503 if unhealthy, 200 if healthy
-            const statusCode = isHealthy ? 200 : 503;
-            
-            return res.status(statusCode).json(healthData);
+            return res.status(isHealthy ? 200 : 503).json(healthData);
         } catch (error) {
             return res.status(503).json({
                 status: 'unhealthy',
@@ -84,20 +51,7 @@ module.exports = (app) => {
         }
     });
 
-    /**
-     * @swagger
-     * /api/health:
-     *   get:
-     *     summary: API health check (alias)
-     *     description: Alternative endpoint for health check
-     *     tags: [Health]
-     *     security: []
-     *     responses:
-     *       200:
-     *         description: Service is healthy
-     */
     app.get('/api/health', async (req, res) => {
-        // Redirect to /health endpoint
         req.url = '/health';
         app.handle(req, res);
     });

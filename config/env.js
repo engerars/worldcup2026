@@ -43,6 +43,7 @@ function loadEnvConfig() {
 
     // دیتابیس
     MONGODB_URL: process.env.MONGODB_URL || 'mongodb://localhost:27017/worldcup2026',
+    STORAGE_MODE: process.env.STORAGE_MODE || 'file',
 
     // امنیت
     JWT_SECRET: process.env.JWT_SECRET || 'worldcup2026_dev_secret_key',
@@ -67,6 +68,12 @@ function loadEnvConfig() {
 
     // Swagger
     ENABLE_SWAGGER: process.env.ENABLE_SWAGGER === 'true' || NODE_ENV === 'development',
+
+    // Live score sync
+    LIVE_SYNC_ENABLED: process.env.LIVE_SYNC_ENABLED !== 'false',
+    LIVE_SYNC_URL: process.env.LIVE_SYNC_URL || 'https://worldcup26.ir',
+    LIVE_SYNC_INTERVAL_MS: parseInt(process.env.LIVE_SYNC_INTERVAL_MS) || 30000,
+    LIVE_POLL_INTERVAL_MS: parseInt(process.env.LIVE_POLL_INTERVAL_MS) || 30000,
 
     // تابع برای دریافت CORS origins
     getCorsOrigins: function() {

@@ -1,6 +1,11 @@
 // Load environment configuration
 const { loadEnvConfig, config } = require('./config/env');
-const nodeEnv = loadEnvConfig();
+loadEnvConfig();
+
+if (config.STORAGE_MODE === 'file') {
+    require('./data/store').exportPublicData();
+    require('./data/liveSync').startLiveSync();
+}
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -122,6 +127,13 @@ app.use(bodyParser.json({ limit: '10kb' })); // Limit body size
 // Dynamic sitemap - must be before static files middleware
 require('./controllers/seoController')(app);
 
+// Never cache live data JSON — scores must stay fresh
+app.use('/data', (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    next();
+});
+
 // Serve static files (UI)
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -160,52 +172,48 @@ if (swaggerUi && specs) {
 const fs = require('fs');
 app.get('/', (req, res) => {
     const lang = req.query.lang;
-    if (lang === 'en') {
+    if (lang === 'fa') {
         try {
             let html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
             html = html
-                .replace('<html lang="fa" dir="rtl">', '<html lang="en" dir="ltr">')
+                .replace('<html lang="en" dir="ltr">', '<html lang="fa" dir="rtl">')
                 .replace(
                     /<title[^>]*>.*?<\/title>/,
-                    '<title id="page-title">FIFA World Cup 2026 | Live Scores, Schedule, Free API &amp; Group Standings</title>'
+                    '<title id="page-title">جام جهانی فوتبال 2026 | برنامه بازی‌ها، تیم‌ها و نتایج</title>'
                 )
                 .replace(
                     /<meta name="description"[^>]*>/,
-                    '<meta name="description" id="meta-description" content="FIFA World Cup 2026 live scores, match schedule &amp; free REST API. Track 48 teams, 104 matches in real-time. Free World Cup data API \u2014 groups, standings, fixtures, teams. USA, Canada &amp; Mexico.">'
-                )
-                .replace(
-                    /<meta name="keywords"[^>]*>/,
-                    '<meta name="keywords" id="meta-keywords" content="FIFA World Cup 2026, World Cup 2026 schedule, World Cup 2026 live score, World Cup 2026 live results, World Cup 2026 groups, World Cup 2026 standings, World Cup 2026 fixtures, World Cup 2026 teams, free football API, free soccer API, World Cup API free, FIFA 2026 API, live score API, free sports API, football data API, sports API 2026, World Cup 2026 bracket, WC2026, soccer 2026, football 2026, 2026 World Cup">'
+                    '<meta name="description" id="meta-description" content="اطلاعات کامل جام جهانی فوتبال 2026 آمریکا، کانادا و مکزیک. برنامه بازی‌ها، جدول گروه‌ها، اطلاعات تیم‌ها و ورزشگاه‌ها.">'
                 )
                 .replace(
                     /<meta property="og:title"[^>]*>/,
-                    '<meta property="og:title" id="og-title" content="FIFA World Cup 2026 | Live Scores, Schedule, Free API &amp; Group Standings">'
+                    '<meta property="og:title" id="og-title" content="جام جهانی فوتبال 2026 | برنامه بازی‌ها، تیم‌ها و نتایج">'
                 )
                 .replace(
                     /<meta property="og:description"[^>]*>/,
-                    '<meta property="og:description" id="og-description" content="FIFA World Cup 2026 live scores, match schedule &amp; free REST API. Track 48 teams, 104 matches in real-time. USA, Canada &amp; Mexico.">'
+                    '<meta property="og:description" id="og-description" content="اطلاعات کامل جام جهانی فوتبال 2026 آمریکا، کانادا و مکزیک. برنامه بازی‌ها، جدول گروه‌ها، اطلاعات تیم‌ها و ورزشگاه‌ها.">'
                 )
                 .replace(
-                    /<meta property="og:locale" content="fa_IR">/,
-                    '<meta property="og:locale" content="en_US">'
+                    /<meta property="og:locale" content="en_US">/,
+                    '<meta property="og:locale" content="fa_IR">'
                 )
                 .replace(
                     /<meta name="twitter:title"[^>]*>/,
-                    '<meta name="twitter:title" id="twitter-title" content="FIFA World Cup 2026 | Live Scores, Schedule, Free API &amp; Group Standings">'
+                    '<meta name="twitter:title" id="twitter-title" content="جام جهانی فوتبال 2026 | برنامه بازی‌ها، تیم‌ها و نتایج">'
                 )
                 .replace(
                     /<meta name="twitter:description"[^>]*>/,
-                    '<meta name="twitter:description" id="twitter-description" content="FIFA World Cup 2026 live scores, match schedule &amp; free REST API. Track 48 teams, 104 matches in real-time.">'
+                    '<meta name="twitter:description" id="twitter-description" content="اطلاعات کامل جام جهانی فوتبال 2026 آمریکا، کانادا و مکزیک. برنامه بازی‌ها، جدول گروه‌ها، اطلاعات تیم‌ها و ورزشگاه‌ها.">'
                 )
                 .replace(
                     /<link rel="canonical"[^>]*>/,
-                    '<link rel="canonical" href="https://worldcup26.ir/?lang=en">'
+                    '<link rel="canonical" href="https://worldcup26.ir/?lang=fa">'
                 );
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             res.setHeader('Cache-Control', 'public, max-age=300');
             return res.send(html);
         } catch (err) {
-            console.error('Error serving English HTML:', err.message);
+            console.error('Error serving Persian HTML:', err.message);
         }
     }
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
