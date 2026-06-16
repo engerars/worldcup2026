@@ -68,7 +68,7 @@ npm run test:load
 
 ## Data flow
 
-1. `index.js` loads env config.
+1. `server.js` loads env config (local) or `api/index.js` (Vercel).
 2. In file mode, `data/store.js` loads the bundled JSON files.
 3. `data/store.js` exports browser-ready copies to `public/data/`.
 4. `data/liveSync.js` polls the public feed and rewrites the source JSON snapshots.
@@ -78,8 +78,8 @@ npm run test:load
 
 ```text
 worldcup2026/
-|-- index.js                 # Local Node server entry
-|-- lib/expressApp.js        # Express app factory (not app.js — Vercel auto-detects that name)
+|-- server.js                # Local Node server entry (not index.js — Vercel auto-detects that)
+|-- lib/expressApp.js        # Express app factory
 |-- bootstrap.js             # File-mode startup (export + live sync)
 |-- api/index.js             # Vercel serverless entry
 |-- vercel.json
