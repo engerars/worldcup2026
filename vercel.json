@@ -4,7 +4,7 @@
   "installCommand": "npm install",
   "functions": {
     "server.js": {
-      "includeFiles": "football.*.json",
+      "includeFiles": "{data,config,controllers,lib}/**,football.*.json,bootstrap.js,swagger.js",
       "maxDuration": 10
     }
   },
