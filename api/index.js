@@ -1,8 +1,9 @@
 const { loadEnvConfig } = require('../config/env');
 const { bootstrap } = require('../bootstrap');
-const { createApp } = require('../app');
+const { createApp } = require('../lib/expressApp');
 
 loadEnvConfig();
 bootstrap();
 
-module.exports = createApp();
+const app = createApp();
+module.exports = app;

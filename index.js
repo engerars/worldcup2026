@@ -1,6 +1,6 @@
 const { loadEnvConfig, config } = require('./config/env');
 const { bootstrap } = require('./bootstrap');
-const { createApp } = require('./app');
+const { createApp } = require('./lib/expressApp');
 
 loadEnvConfig();
 

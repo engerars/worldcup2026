@@ -79,7 +79,7 @@ npm run test:load
 ```text
 worldcup2026/
 |-- index.js                 # Local Node server entry
-|-- app.js                   # Express app factory
+|-- lib/expressApp.js        # Express app factory (not app.js — Vercel auto-detects that name)
 |-- bootstrap.js             # File-mode startup (export + live sync)
 |-- api/index.js             # Vercel serverless entry
 |-- vercel.json
