@@ -68,7 +68,7 @@ npm run test:load
 
 ## Data flow
 
-1. `server.js` loads env config (local) or `api/index.js` (Vercel).
+1. `server.js` loads env, bootstraps data, and exports the Express app (Vercel entrypoint + local `npm start`).
 2. In file mode, `data/store.js` loads the bundled JSON files.
 3. `data/store.js` exports browser-ready copies to `public/data/`.
 4. `data/liveSync.js` polls the public feed and rewrites the source JSON snapshots.
@@ -78,10 +78,9 @@ npm run test:load
 
 ```text
 worldcup2026/
-|-- server.js                # Local Node server entry (not index.js — Vercel auto-detects that)
+|-- server.js                # Express entry (local listen + Vercel export)
 |-- lib/expressApp.js        # Express app factory
 |-- bootstrap.js             # File-mode startup (export + live sync)
-|-- api/index.js             # Vercel serverless entry
 |-- vercel.json
 |-- config/env.js
 |-- controllers/
@@ -124,7 +123,7 @@ This project includes a serverless entry point for [Vercel](https://vercel.com).
 | Build Command | *(leave empty — override ON, no command)* |
 | Output Directory | *(leave empty — Vercel auto-serves `public/`)* |
 | Install Command | `npm install` |
-| Node.js Version | **18.x** or **20.x** |
+| Node.js Version | **20.x** |
 
 > **Important:** If you see a yellow **Production Overrides** banner, remove any override for Build Command or Output Directory (e.g. `dist`). Those stale overrides cause 404/500 on `/`.
 
@@ -148,20 +147,21 @@ CORS_ORIGINS=*
 2. Apply the dashboard settings above.
 3. Deploy — no build step required.
 
-### Routing (from `vercel.json`)
+### Routing
+
+Vercel runs `server.js` (via `"main"`) as the Node entrypoint. Express serves everything:
 
 | URL | Handler |
 |-----|---------|
-| `/` | `public/index.html` (CDN static) |
-| `/data/*`, `/stadiums/*`, `/trophy.png` | `public/` (CDN static) |
-| `/get/*`, `/health`, `/sitemap.xml`, `/api-docs` | `api/index.js` (serverless Express) |
+| `/`, `/data/*`, `/stadiums/*`, `/trophy.png` | Express static middleware → `public/` |
+| `/get/*`, `/health`, `/sitemap.xml`, `/api-docs` | Express API routes |
 
 ### How Vercel mode works
 
 - `VERCEL=1` is set automatically → read-only storage (no background file writes).
 - Source JSON (`football.*.json`) is bundled with the serverless function for API reads.
 - Live scores: frontend polls `/get/live`; serverless may fetch fresh data from `LIVE_SYNC_URL` on each request (throttled in-memory).
-- Local entry is `server.js` (not `index.js`) so Vercel does not auto-detect a root serverless handler.
+- Local dev uses `app.listen()`; on Vercel the exported Express app handles requests without listening on a port.
 
 ### Smoke test after deploy
 

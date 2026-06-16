@@ -2,19 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "installCommand": "npm install",
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 10
-    }
-  },
-  "rewrites": [
-    { "source": "/get/:path*", "destination": "/api" },
-    { "source": "/health", "destination": "/api" },
-    { "source": "/api/health", "destination": "/api" },
-    { "source": "/sitemap.xml", "destination": "/api" },
-    { "source": "/api-docs", "destination": "/api" },
-    { "source": "/api-docs/:path*", "destination": "/api" }
-  ],
   "headers": [
     {
       "source": "/data/(.*)",
