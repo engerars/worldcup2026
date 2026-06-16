@@ -1,6 +1,6 @@
 require('dotenv').config();
-const mongoose = require('./database');
-const Stadium = require('./models/stadium');
+const mongoose = require('../database');
+const Stadium = require('../models/stadium');
 const fs = require('fs');
 
 async function importStadiums() {

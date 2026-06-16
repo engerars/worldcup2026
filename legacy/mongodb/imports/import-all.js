@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { exec } = require('child_process');
 const util = require('util');
+const path = require('path');
 const execPromise = util.promisify(exec);
 
 async function importAll() {
@@ -8,19 +9,19 @@ async function importAll() {
     
     try {
         console.log('📊 Step 1/4: Importing Groups...');
-        await execPromise('node import-groups.js');
+        await execPromise(`node "${path.join(__dirname, 'import-groups.js')}"`);
         console.log('✅ Groups imported successfully!\n');
         
         console.log('👥 Step 2/4: Importing Teams...');
-        await execPromise('node import-teams.js');
+        await execPromise(`node "${path.join(__dirname, 'import-teams.js')}"`);
         console.log('✅ Teams imported successfully!\n');
         
         console.log('🏟️  Step 3/4: Importing Stadiums...');
-        await execPromise('node import-stadiums.js');
+        await execPromise(`node "${path.join(__dirname, 'import-stadiums.js')}"`);
         console.log('✅ Stadiums imported successfully!\n');
         
         console.log('⚽ Step 4/4: Importing Matches...');
-        await execPromise('node import-matches.js');
+        await execPromise(`node "${path.join(__dirname, 'import-matches.js')}"`);
         console.log('✅ Matches imported successfully!\n');
         
         console.log('🎉 All data imported successfully!');

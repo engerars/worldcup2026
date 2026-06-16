@@ -1,7 +1,7 @@
 require('dotenv').config();
-const mongoose = require('./database');
-const Team = require('./models/team');
-const Group = require('./models/group');
+const mongoose = require('../database');
+const Team = require('../models/team');
+const Group = require('../models/group');
 const fs = require('fs');
 
 async function importTeams() {

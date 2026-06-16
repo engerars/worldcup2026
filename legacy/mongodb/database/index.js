@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { loadEnvConfig } = require('../config/env');
+const { loadEnvConfig } = require('../../../config/env');
 
 mongoose.set('strictQuery', false);
 mongoose.Promise = global.Promise;

@@ -1,7 +1,7 @@
 require('dotenv').config();
-const mongoose = require('./database');
-const Game = require('./models/game');
-const Team = require('./models/team');
+const mongoose = require('../database');
+const Game = require('../models/game');
+const Team = require('../models/team');
 const fs = require('fs');
 
 async function importMatches() {

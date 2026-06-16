@@ -1,6 +1,6 @@
 require('dotenv').config();
-const mongoose = require('./database');
-const Group = require('./models/group');
+const mongoose = require('../database');
+const Group = require('../models/group');
 const fs = require('fs');
 
 async function importMatchTables() {

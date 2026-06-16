@@ -168,54 +168,8 @@ if (swaggerUi && specs) {
  *                   type: string
  *                   example: Welcome to FIFA World Cup 2026 API
  */
-// Serve UI for root path - with server-side language detection for SEO
-const fs = require('fs');
+// Serve UI for root path
 app.get('/', (req, res) => {
-    const lang = req.query.lang;
-    if (lang === 'fa') {
-        try {
-            let html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
-            html = html
-                .replace('<html lang="en" dir="ltr">', '<html lang="fa" dir="rtl">')
-                .replace(
-                    /<title[^>]*>.*?<\/title>/,
-                    '<title id="page-title">جام جهانی فوتبال 2026 | برنامه بازی‌ها، تیم‌ها و نتایج</title>'
-                )
-                .replace(
-                    /<meta name="description"[^>]*>/,
-                    '<meta name="description" id="meta-description" content="اطلاعات کامل جام جهانی فوتبال 2026 آمریکا، کانادا و مکزیک. برنامه بازی‌ها، جدول گروه‌ها، اطلاعات تیم‌ها و ورزشگاه‌ها.">'
-                )
-                .replace(
-                    /<meta property="og:title"[^>]*>/,
-                    '<meta property="og:title" id="og-title" content="جام جهانی فوتبال 2026 | برنامه بازی‌ها، تیم‌ها و نتایج">'
-                )
-                .replace(
-                    /<meta property="og:description"[^>]*>/,
-                    '<meta property="og:description" id="og-description" content="اطلاعات کامل جام جهانی فوتبال 2026 آمریکا، کانادا و مکزیک. برنامه بازی‌ها، جدول گروه‌ها، اطلاعات تیم‌ها و ورزشگاه‌ها.">'
-                )
-                .replace(
-                    /<meta property="og:locale" content="en_US">/,
-                    '<meta property="og:locale" content="fa_IR">'
-                )
-                .replace(
-                    /<meta name="twitter:title"[^>]*>/,
-                    '<meta name="twitter:title" id="twitter-title" content="جام جهانی فوتبال 2026 | برنامه بازی‌ها، تیم‌ها و نتایج">'
-                )
-                .replace(
-                    /<meta name="twitter:description"[^>]*>/,
-                    '<meta name="twitter:description" id="twitter-description" content="اطلاعات کامل جام جهانی فوتبال 2026 آمریکا، کانادا و مکزیک. برنامه بازی‌ها، جدول گروه‌ها، اطلاعات تیم‌ها و ورزشگاه‌ها.">'
-                )
-                .replace(
-                    /<link rel="canonical"[^>]*>/,
-                    '<link rel="canonical" href="https://worldcup26.ir/?lang=fa">'
-                );
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-            res.setHeader('Cache-Control', 'public, max-age=300');
-            return res.send(html);
-        } catch (err) {
-            console.error('Error serving Persian HTML:', err.message);
-        }
-    }
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
