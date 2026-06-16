@@ -4,6 +4,23 @@ const { loadEnvConfig } = require('../config/env');
 
 const ROOT = path.join(__dirname, '..');
 
+// Static requires so Vercel/Node bundlers include JSON in the serverless bundle
+const SOURCE_FILES = {
+    teams: require('../football.teams.json'),
+    games: require('../football.matches.json'),
+    groups: require('../football.matchtables.json'),
+    stadiums: require('../football.stadiums.json')
+};
+
+function normalizeMongoJson(value) {
+    return JSON.parse(JSON.stringify(value), (key, v) => {
+        if (v && typeof v === 'object' && v.$oid) {
+            return v.$oid;
+        }
+        return v;
+    });
+}
+
 function loadJson(filename) {
     const raw = fs.readFileSync(path.join(ROOT, filename), 'utf8');
     return JSON.parse(raw, (key, value) => {
@@ -14,17 +31,31 @@ function loadJson(filename) {
     });
 }
 
-let cache = null;
-let lastUpdated = null;
-
-function getStore() {
-    if (!cache) {
-        cache = {
+function loadSourceData() {
+    try {
+        return {
             teams: loadJson('football.teams.json'),
             games: loadJson('football.matches.json'),
             groups: loadJson('football.matchtables.json'),
             stadiums: loadJson('football.stadiums.json')
         };
+    } catch (err) {
+        if (err.code !== 'ENOENT') throw err;
+        return {
+            teams: normalizeMongoJson(SOURCE_FILES.teams),
+            games: normalizeMongoJson(SOURCE_FILES.games),
+            groups: normalizeMongoJson(SOURCE_FILES.groups),
+            stadiums: normalizeMongoJson(SOURCE_FILES.stadiums)
+        };
+    }
+}
+
+let cache = null;
+let lastUpdated = null;
+
+function getStore() {
+    if (!cache) {
+        cache = loadSourceData();
     }
     return cache;
 }
