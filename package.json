@@ -2,7 +2,6 @@
   "name": "worldcup2026-api",
   "version": "1.0.5",
   "description": "Free open-source REST API for FIFA World Cup 2026 with file-backed live scores, match schedule, group standings, 48 teams, 16 stadiums, and real-time updates.",
-  "main": "server.js",
   "engines": {
     "node": ">=18.x"
   },

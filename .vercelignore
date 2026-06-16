@@ -1,0 +1,6 @@
+# Shrink serverless bundle — not used at runtime
+legacy/
+.history/
+load-test.js
+test-server.js
+create-mongodb-user.js

@@ -115,12 +115,22 @@ worldcup2026/
 
 This project includes a serverless entry point for [Vercel](https://vercel.com).
 
-1. Import the GitHub repo in the Vercel dashboard (or run `vercel` from the CLI).
-2. Framework preset: **Other** (no build command required).
-3. Install command: `npm install`
-4. Output: static files from `public/` are served automatically; API routes are rewritten to `api/index.js`.
+### Vercel Dashboard settings
 
-Recommended environment variables in the Vercel project settings:
+| Setting | Value |
+|---------|-------|
+| Framework Preset | **Other** |
+| Root Directory | `.` (repo root) |
+| Build Command | *(leave empty — override ON, no command)* |
+| Output Directory | *(leave empty — Vercel auto-serves `public/`)* |
+| Install Command | `npm install` |
+| Node.js Version | **18.x** or **20.x** |
+
+> **Important:** If you see a yellow **Production Overrides** banner, remove any override for Build Command or Output Directory (e.g. `dist`). Those stale overrides cause 404/500 on `/`.
+
+### Environment variables
+
+Set these in **Project → Settings → Environment Variables** (Production):
 
 ```env
 NODE_ENV=production
@@ -132,12 +142,36 @@ ENABLE_SWAGGER=false
 CORS_ORIGINS=*
 ```
 
+### Deploy steps
+
+1. Import the GitHub repo (`engerars/worldcup2026`) in the Vercel dashboard.
+2. Apply the dashboard settings above.
+3. Deploy — no build step required.
+
+### Routing (from `vercel.json`)
+
+| URL | Handler |
+|-----|---------|
+| `/` | `public/index.html` (CDN static) |
+| `/data/*`, `/stadiums/*`, `/trophy.png` | `public/` (CDN static) |
+| `/get/*`, `/health`, `/sitemap.xml`, `/api-docs` | `api/index.js` (serverless Express) |
+
 ### How Vercel mode works
 
 - `VERCEL=1` is set automatically → read-only storage (no background file writes).
-- Static assets (`index.html`, `/data/*.json`, `/stadiums/*.jpg`, `trophy.png`) are served from the CDN.
-- Dynamic routes (`/get/*`, `/health`, `/sitemap.xml`, `/api-docs`) run as a serverless Express app.
-- Live scores: the frontend polls `/get/live`; on Vercel each request may fetch fresh data from `LIVE_SYNC_URL` (throttled in-memory, no disk writes).
+- Source JSON (`football.*.json`) is bundled with the serverless function for API reads.
+- Live scores: frontend polls `/get/live`; serverless may fetch fresh data from `LIVE_SYNC_URL` on each request (throttled in-memory).
+- Local entry is `server.js` (not `index.js`) so Vercel does not auto-detect a root serverless handler.
+
+### Smoke test after deploy
+
+```text
+GET /                          → 200 HTML (web app)
+GET /data/games.json           → 200 JSON
+GET /get/teams                 → 200 JSON
+GET /get/live                  → 200 JSON
+GET /health                    → 200 JSON, platform: "vercel"
+```
 
 Local development is unchanged:
 
