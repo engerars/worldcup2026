@@ -13,6 +13,8 @@ module.exports = (app) => {
                 uptime: process.uptime(),
                 version: packageJson.version,
                 environment: process.env.NODE_ENV || 'development',
+                platform: config.isServerless ? 'vercel' : 'node',
+                readOnlyStorage: config.READ_ONLY_STORAGE,
                 storage: isFileStorage ? 'file' : config.STORAGE_MODE,
                 database: {
                     status: isFileStorage ? 'file' : 'legacy',

@@ -78,7 +78,11 @@ npm run test:load
 
 ```text
 worldcup2026/
-|-- index.js
+|-- index.js                 # Local Node server entry
+|-- app.js                   # Express app factory
+|-- bootstrap.js             # File-mode startup (export + live sync)
+|-- api/index.js             # Vercel serverless entry
+|-- vercel.json
 |-- config/env.js
 |-- controllers/
 |   |-- index.js
@@ -106,3 +110,37 @@ worldcup2026/
 - MongoDB-only controllers, models, middleware, database helpers, and import scripts now live under `legacy/mongodb/` and are not mounted in the default file-only deployment.
 - `public/index.html` is the bundled SPA served from `/`.
 - `GET /health` reports file storage status and memory usage.
+
+## Deploy on Vercel
+
+This project includes a serverless entry point for [Vercel](https://vercel.com).
+
+1. Import the GitHub repo in the Vercel dashboard (or run `vercel` from the CLI).
+2. Framework preset: **Other** (no build command required).
+3. Install command: `npm install`
+4. Output: static files from `public/` are served automatically; API routes are rewritten to `api/index.js`.
+
+Recommended environment variables in the Vercel project settings:
+
+```env
+NODE_ENV=production
+STORAGE_MODE=file
+LIVE_SYNC_ENABLED=true
+LIVE_SYNC_URL=https://worldcup26.ir
+LIVE_SYNC_INTERVAL_MS=30000
+ENABLE_SWAGGER=false
+CORS_ORIGINS=*
+```
+
+### How Vercel mode works
+
+- `VERCEL=1` is set automatically → read-only storage (no background file writes).
+- Static assets (`index.html`, `/data/*.json`, `/stadiums/*.jpg`, `trophy.png`) are served from the CDN.
+- Dynamic routes (`/get/*`, `/health`, `/sitemap.xml`, `/api-docs`) run as a serverless Express app.
+- Live scores: the frontend polls `/get/live`; on Vercel each request may fetch fresh data from `LIVE_SYNC_URL` (throttled in-memory, no disk writes).
+
+Local development is unchanged:
+
+```bash
+npm start
+```

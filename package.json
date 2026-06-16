@@ -3,6 +3,9 @@
   "version": "1.0.5",
   "description": "Free open-source REST API for FIFA World Cup 2026 with file-backed live scores, match schedule, group standings, 48 teams, 16 stadiums, and real-time updates.",
   "main": "index.js",
+  "engines": {
+    "node": ">=18.x"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "cross-env NODE_ENV=development PORT=3051 node index.js",

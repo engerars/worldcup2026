@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { loadEnvConfig } = require('../config/env');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -50,6 +51,11 @@ function setLiveData({ games, groups }) {
     if (games) cache.games = games.map(stripGameForStorage);
     if (groups) cache.groups = groups;
     lastUpdated = Date.now();
+
+    const readOnly = loadEnvConfig().READ_ONLY_STORAGE;
+    if (readOnly) {
+        return;
+    }
 
     if (games) {
         fs.writeFileSync(
@@ -139,6 +145,10 @@ function getStadiumById(id) {
 }
 
 function exportPublicData(quiet) {
+    if (loadEnvConfig().READ_ONLY_STORAGE) {
+        return;
+    }
+
     const outDir = path.join(ROOT, 'public', 'data');
     if (!fs.existsSync(outDir)) {
         fs.mkdirSync(outDir, { recursive: true });

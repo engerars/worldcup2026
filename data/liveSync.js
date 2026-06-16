@@ -2,11 +2,19 @@ const axios = require('axios');
 const store = require('./store');
 const { loadEnvConfig } = require('../config/env');
 
-async function syncLiveScores() {
+let lastSyncAt = 0;
+
+async function syncLiveScores(force = false) {
     const config = loadEnvConfig();
     if (!config.LIVE_SYNC_ENABLED || !config.LIVE_SYNC_URL) {
         return;
     }
+
+    const now = Date.now();
+    if (!force && now - lastSyncAt < config.LIVE_SYNC_INTERVAL_MS) {
+        return;
+    }
+    lastSyncAt = now;
 
     const base = config.LIVE_SYNC_URL.replace(/\/$/, '');
 
@@ -32,8 +40,12 @@ async function syncLiveScores() {
 
 function startLiveSync() {
     const config = loadEnvConfig();
-    if (!config.LIVE_SYNC_ENABLED) {
-        console.log('⏸️ Live score sync disabled');
+    if (!config.LIVE_SYNC_ENABLED || config.READ_ONLY_STORAGE) {
+        if (config.READ_ONLY_STORAGE && config.LIVE_SYNC_ENABLED) {
+            console.log('🔴 Live sync on demand via /get/live (serverless read-only mode)');
+        } else {
+            console.log('⏸️ Live score sync disabled');
+        }
         return;
     }
 

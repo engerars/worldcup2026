@@ -22,6 +22,8 @@ function loadEnvConfig() {
     isProd: NODE_ENV === 'production',
     isDevelopment: NODE_ENV === 'development',
     isProduction: NODE_ENV === 'production',
+    isServerless: process.env.VERCEL === '1',
+    READ_ONLY_STORAGE: process.env.READ_ONLY_STORAGE === 'true' || process.env.VERCEL === '1',
     PORT: parseInt(process.env.PORT, 10) || 3050,
     API_URL: process.env.API_URL || `http://localhost:${process.env.PORT || 3050}`,
     FRONTEND_URL: process.env.FRONTEND_URL || `http://localhost:${process.env.PORT || 3050}`,

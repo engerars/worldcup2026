@@ -101,8 +101,13 @@ router.get('/stadium/:id', (req, res) => {
     }
 });
 
-router.get('/live', (req, res) => {
+router.get('/live', async (req, res) => {
     try {
+        const config = loadEnvConfig();
+        if (config.READ_ONLY_STORAGE && config.LIVE_SYNC_ENABLED) {
+            await require('../data/liveSync').syncLiveScores();
+        }
+
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
         return res.json({
             updatedAt: store.getLastUpdated() || Date.now(),
