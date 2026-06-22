@@ -150,7 +150,12 @@ worldcup2026/
 |   `-- fetch-stadiums.js
 |-- public/
 |   |-- index.html            # SPA shell
-|   |-- app.js                # SPA logic (extracted from index.html)
+|   |-- js/                   # SPA scripts (load order 01 → 05)
+|   |   |-- 01-state.js       # translations, shared state
+|   |   |-- 02-shell.js       # icons, tabs, navigation
+|   |   |-- 03-data.js        # IndexedDB, fetch, live/static load
+|   |   |-- 04-ui.js          # renderers, bracket, modals
+|   |   `-- 05-init.js        # DOMContentLoaded boot
 |   |-- data/
 |   |   |-- teams.json
 |   |   |-- games.json
@@ -172,7 +177,8 @@ worldcup2026/
 
 - `legacy/mongodb/` holds the old MongoDB stack (auth, donations, imports). It is **not mounted** in file-mode deployment — see `legacy/mongodb/README.md`.
 - `public/index.html` + `public/app.js` — English-only SPA.
-- Live sync validates upstream games/groups (shape, counts, known team IDs) before overwriting local JSON.
+- Live sync validates upstream games/groups (shape, counts, known team IDs) before overwriting local JSON. Tune via `LIVE_VALIDATE_*` in `.env.example`.
+- `npm test` runs `scripts/run-tests.js` (no shell globs — works on Windows/PowerShell).
 - `GET /health` reports file storage status and memory usage.
 - Squad staff currently lists **head coach only** (Wikipedia/FIFA source); assistant coaches are not in the public squad lists.
 - On Vercel (`VERCEL=1`), storage is read-only — live sync writes are disabled; run `npm run import:squads` locally and commit updated JSON.

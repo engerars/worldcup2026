@@ -1,6 +1,6 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { validateLivePayload, EXPECTED_GAME_COUNT } = require('../data/validateLiveData');
+const { validateLivePayload, getLiveValidateRules } = require('../data/validateLiveData');
 const store = require('../data/store');
 
 const teams = store.getAllTeams();
@@ -23,7 +23,8 @@ describe('validateLivePayload', () => {
             games: games.slice(0, 10),
             groups,
             teams,
-            currentGames: games
+            currentGames: games,
+            rules: { minGameRatio: 0.75, minGames: 48 }
         });
         assert.equal(result.ok, false);
     });

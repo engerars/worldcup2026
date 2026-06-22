@@ -1,12 +1,7 @@
 /**
  * Validate upstream live payload before overwriting local match/standings data.
  */
-const EXPECTED_GROUP_COUNT = 12;
-const EXPECTED_GAME_COUNT = 104;
-const MIN_GAMES = 48;
-const MAX_GAMES = 150;
-const MIN_GROUPS = 8;
-const MAX_GROUPS = 16;
+const { getLiveValidateRules } = require('../config/liveValidate');
 
 function isNonEmptyString(value) {
     return typeof value === 'string' && value.trim().length > 0;
@@ -36,14 +31,15 @@ function validateGame(game, index, validTeamIds) {
     return errors;
 }
 
-function validateGroup(group, index, validTeamIds) {
+function validateGroup(group, index, validTeamIds, rules) {
     const errors = [];
+    const groupCodeRe = new RegExp(rules.groupCodePattern);
     if (!group || typeof group !== 'object') {
         errors.push(`groups[${index}]: not an object`);
         return errors;
     }
     const code = groupCode(group);
-    if (!/^[A-L]$/.test(code)) errors.push(`groups[${index}]: invalid group code "${code}"`);
+    if (!groupCodeRe.test(code)) errors.push(`groups[${index}]: invalid group code "${code}"`);
     if (!Array.isArray(group.teams) || group.teams.length === 0) {
         errors.push(`groups[${index}]: teams must be a non-empty array`);
         return errors;
@@ -59,10 +55,10 @@ function validateGroup(group, index, validTeamIds) {
 }
 
 /**
- * @param {{ games?: unknown, groups?: unknown, teams?: Array<{ id: string }>, currentGames?: unknown[] }} payload
- * @returns {{ ok: true, games: object[], groups: object[] } | { ok: false, errors: string[] }}
+ * @param {{ games?: unknown, groups?: unknown, teams?: Array<{ id: string }>, currentGames?: unknown[], rules?: object }} payload
  */
 function validateLivePayload(payload = {}) {
+    const rules = getLiveValidateRules(payload.rules);
     const errors = [];
     const { games, groups, teams, currentGames } = payload;
 
@@ -73,18 +69,18 @@ function validateLivePayload(payload = {}) {
         return { ok: false, errors: ['groups must be an array'] };
     }
 
-    if (games.length < MIN_GAMES || games.length > MAX_GAMES) {
-        errors.push(`games length ${games.length} outside allowed range ${MIN_GAMES}-${MAX_GAMES}`);
+    if (games.length < rules.minGames || games.length > rules.maxGames) {
+        errors.push(`games length ${games.length} outside allowed range ${rules.minGames}-${rules.maxGames}`);
     }
-    if (groups.length < MIN_GROUPS || groups.length > MAX_GROUPS) {
-        errors.push(`groups length ${groups.length} outside allowed range ${MIN_GROUPS}-${MAX_GROUPS}`);
+    if (groups.length < rules.minGroups || groups.length > rules.maxGroups) {
+        errors.push(`groups length ${groups.length} outside allowed range ${rules.minGroups}-${rules.maxGroups}`);
     }
 
-    const currentCount = Array.isArray(currentGames) ? currentGames.length : EXPECTED_GAME_COUNT;
-    const baseline = currentCount > 0 ? currentCount : EXPECTED_GAME_COUNT;
-    const minAllowed = Math.floor(baseline * 0.75);
+    const currentCount = Array.isArray(currentGames) ? currentGames.length : rules.expectedGameCount;
+    const baseline = currentCount > 0 ? currentCount : rules.expectedGameCount;
+    const minAllowed = Math.max(rules.minGames, Math.floor(baseline * rules.minGameRatio));
     if (games.length < minAllowed) {
-        errors.push(`games length ${games.length} is below 75% of current baseline (${baseline})`);
+        errors.push(`games length ${games.length} is below ${rules.minGameRatio * 100}% of baseline (${baseline})`);
     }
 
     const validTeamIds = Array.isArray(teams)
@@ -95,15 +91,17 @@ function validateLivePayload(payload = {}) {
         errors.push(...validateGame(game, index, validTeamIds));
     });
     groups.forEach((group, index) => {
-        errors.push(...validateGroup(group, index, validTeamIds));
+        errors.push(...validateGroup(group, index, validTeamIds, rules));
     });
 
-    const codes = new Set(groups.map(groupCode).filter(Boolean));
-    if (codes.size !== groups.length) {
-        errors.push('groups contain duplicate or empty group codes');
-    }
-    if (groups.length === EXPECTED_GROUP_COUNT && codes.size !== EXPECTED_GROUP_COUNT) {
-        errors.push(`expected ${EXPECTED_GROUP_COUNT} distinct group codes A-L`);
+    if (rules.requireDistinctGroupCodes) {
+        const codes = new Set(groups.map(groupCode).filter(Boolean));
+        if (codes.size !== groups.length) {
+            errors.push('groups contain duplicate or empty group codes');
+        }
+        if (groups.length === rules.expectedGroupCount && codes.size !== rules.expectedGroupCount) {
+            errors.push(`expected ${rules.expectedGroupCount} distinct group codes (${rules.groupCodePattern})`);
+        }
     }
 
     if (errors.length) {
@@ -114,6 +112,5 @@ function validateLivePayload(payload = {}) {
 
 module.exports = {
     validateLivePayload,
-    EXPECTED_GAME_COUNT,
-    EXPECTED_GROUP_COUNT
+    getLiveValidateRules
 };

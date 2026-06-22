@@ -14,7 +14,7 @@
     "start:prod": "cross-env NODE_ENV=production node server.js",
     "export:data": "node -e \"require('./data/store').exportPublicData()\"",
     "import:squads": "node scripts/import-wikipedia-squads.js",
-    "test": "node --test tests/*.test.js",
+    "test": "node scripts/run-tests.js",
     "test:load": "node load-test.js"
   },
   "keywords": [
