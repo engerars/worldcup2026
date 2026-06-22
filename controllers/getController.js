@@ -31,9 +31,26 @@ router.get('/team/:idTeam', (req, res) => {
         if (!team) {
             return res.status(404).send({ error: `Team not found: ${req.params.idTeam}` });
         }
-        return res.send({ team });
+        const squad = store.getSquadByTeamId(req.params.idTeam);
+        return res.send({ team, squad });
     } catch (err) {
         return res.status(400).send({ error: `Error getting team with id:${req.params.idTeam}` });
+    }
+});
+
+router.get('/squad/:idTeam', (req, res) => {
+    try {
+        const team = store.getTeamById(req.params.idTeam);
+        if (!team) {
+            return res.status(404).send({ error: `Team not found: ${req.params.idTeam}` });
+        }
+        const squad = store.getSquadByTeamId(req.params.idTeam);
+        if (!squad) {
+            return res.status(404).send({ error: `Squad not found for team: ${req.params.idTeam}` });
+        }
+        return res.send({ team, squad });
+    } catch (err) {
+        return res.status(400).send({ error: `Error getting squad for team id:${req.params.idTeam}` });
     }
 });
 

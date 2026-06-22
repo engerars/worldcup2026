@@ -1,6 +1,6 @@
 # FIFA World Cup 2026 API
 
-File-backed REST API and web app for the FIFA World Cup 2026.
+File-backed REST API and web app for the FIFA World Cup 2026 — 48 teams, group standings, knockout bracket, live scores, stadiums, and official squad lists.
 
 Default deployment:
 - No MongoDB
@@ -8,20 +8,55 @@ Default deployment:
 - Public JSON exported to `public/data/*.json`
 - Live scores synced through `/get/games` and `/get/groups`
 
-## What runs in file mode
+## Web app (`public/index.html`)
 
-- `GET /get/groups`
-- `GET /get/group?name=A`
-- `GET /get/teams`
-- `GET /get/team/:idTeam`
-- `GET /get/games`
-- `GET /get/game/:idGame`
-- `GET /get/stadiums`
-- `GET /get/stadium/:id`
-- `GET /get/live`
-- `GET /health`
-- `GET /api/health`
-- `GET /`
+Single-page app served from `/` with four main tabs:
+
+| Tab | Features |
+|-----|----------|
+| **Matches** | Schedule by date; auto-scrolls to live match, today's unfinished games, or next upcoming fixture when opened |
+| **Groups** | Standings for all 12 groups (A–L) |
+| **Knockout** | Bracket; click a team to open group standings with that team highlighted |
+| **Teams** | 48 team cards; click a team to open squad modal (head coach + 26 players by position) |
+
+Static data is loaded from `public/data/*.json`. Live scores poll `/get/live` (or refresh static JSON when live sync is active).
+
+## API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/get/groups` | All group standings |
+| `GET` | `/get/group?name=A` | Single group by letter |
+| `GET` | `/get/teams` | All teams (`?group=A` optional) |
+| `GET` | `/get/team/:idTeam` | Team info + squad |
+| `GET` | `/get/squad/:idTeam` | Squad only (coach + 26 players) |
+| `GET` | `/get/team?name=Mexico` | Team by English name (no squad) |
+| `GET` | `/get/games` | All matches |
+| `GET` | `/get/game/:idGame` | Single match |
+| `GET` | `/get/stadiums` | All stadiums |
+| `GET` | `/get/stadium/:id` | Single stadium |
+| `GET` | `/get/live` | Live score snapshot |
+| `GET` | `/health` | Storage status + memory |
+| `GET` | `/api/health` | Alias for `/health` |
+| `GET` | `/` | Web app |
+| `GET` | `/api-docs` | Swagger UI (when enabled) |
+
+### Squad response shape
+
+```json
+{
+  "team": { "id": "1", "name_en": "Mexico", "fifa_code": "MEX", "groups": "A" },
+  "squad": {
+    "team_id": "1",
+    "staff": [{ "role": "Head Coach", "name": "Javier Aguirre" }],
+    "players": [
+      { "number": 1, "name": "Raúl Rangel", "position": "GK", "club": "Guadalajara" }
+    ]
+  }
+}
+```
+
+Each squad has **26 players** (official FIFA list) sorted by position (GK → DEF → MID → FWD) then shirt number.
 
 ## Setup
 
@@ -31,14 +66,14 @@ npm start
 ```
 
 Open:
-- `http://localhost:3050`
-- `http://localhost:3050/api-docs`
+- `http://localhost:3050` — web app
+- `http://localhost:3050/api-docs` — Swagger (if `ENABLE_SWAGGER=true`)
 
-> `npm run dev` runs on port `3051` (auto-reload). Use `npm start` for the default `3050`.
+> `npm run dev` runs on port **3051**. Use `npm start` for the default **3050**.
 
 ## Environment
 
-Create `.env.development` or `.env.production` if you want to override defaults.
+Create `.env.development` or `.env.production` to override defaults.
 
 ```env
 NODE_ENV=development
@@ -59,28 +94,41 @@ CORS_ORIGINS=*
 ## Scripts
 
 ```bash
-npm start
-npm run dev
-npm run prod
-npm run export:data
-npm run test:load
+npm start              # Local server on PORT (default 3050)
+npm run dev            # Development on port 3051
+npm run prod           # NODE_ENV=production
+npm run export:data    # Export football.*.json → public/data/
+npm run import:squads  # Fetch official squads from Wikipedia (FIFA-sourced)
+npm run build:squads   # Build football.squads.json + public/data/squads.json
+npm run test:load      # Simple load test
 ```
+
+### Updating squad data
+
+Official squads are imported from [Wikipedia – 2026 FIFA World Cup squads](https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_squads) (sourced from FIFA announcements). FIFA PDF: [SquadLists-English.pdf](https://fdp.fifa.org/assetspublic/ce281/pdf/SquadLists-English.pdf).
+
+```bash
+npm run import:squads   # → scripts/squad-players-seed.json, scripts/squad-coaches.json
+npm run build:squads    # → football.squads.json, public/data/squads.json
+```
+
+`import:squads` requires network access. Re-run after FIFA squad changes.
 
 ## Data flow
 
 1. `server.js` loads env, bootstraps data, and exports the Express app (Vercel entrypoint + local `npm start`).
-2. In file mode, `data/store.js` loads the bundled JSON files.
-3. `data/store.js` exports browser-ready copies to `public/data/`.
-4. `data/liveSync.js` polls the public feed and rewrites the source JSON snapshots.
-5. `controllers/getController.js` serves the public read API.
+2. In file mode, `data/store.js` loads bundled `football.*.json` files.
+3. `data/store.js` exports browser-ready copies to `public/data/` (teams, games, groups, stadiums, squads).
+4. `data/liveSync.js` polls the public feed and rewrites match/standings snapshots when enabled.
+5. `controllers/getController.js` serves the read API.
 
 ## Project structure
 
 ```text
 worldcup2026/
-|-- server.js                # Express entry (local listen + Vercel export)
-|-- lib/expressApp.js        # Express app factory
-|-- bootstrap.js             # File-mode startup (export + live sync)
+|-- server.js                 # Express entry (local listen + Vercel export)
+|-- lib/expressApp.js         # Express app factory
+|-- bootstrap.js              # File-mode startup (export + live sync)
 |-- vercel.json
 |-- config/env.js
 |-- controllers/
@@ -91,24 +139,38 @@ worldcup2026/
 |-- data/
 |   |-- store.js
 |   `-- liveSync.js
+|-- scripts/
+|   |-- import-wikipedia-squads.js   # Import FIFA squads from Wikipedia
+|   |-- build-squads.js              # Merge squads → football.squads.json
+|   |-- squad-players-seed.json        # 48 × 26 players (generated)
+|   |-- squad-coaches.json             # Head coaches (generated)
+|   `-- fetch-stadiums.js
 |-- public/
-|   |-- index.html
-|   |-- data/*.json
+|   |-- index.html            # SPA (matches, groups, knockout, teams)
+|   |-- data/
+|   |   |-- teams.json
+|   |   |-- games.json
+|   |   |-- groups.json
+|   |   |-- stadiums.json
+|   |   `-- squads.json
 |   |-- stadiums/{id}.jpg
 |   `-- trophy.png
 |-- football.teams.json
 |-- football.matches.json
 |-- football.matchtables.json
 |-- football.stadiums.json
-|-- legacy/mongodb/          # Legacy MongoDB code moved out of the runtime tree
+|-- football.squads.json
+|-- legacy/mongodb/             # Legacy MongoDB code (not used in file mode)
 `-- swagger.js
 ```
 
 ## Notes
 
-- MongoDB-only controllers, models, middleware, database helpers, and import scripts now live under `legacy/mongodb/` and are not mounted in the default file-only deployment.
+- MongoDB-only controllers, models, middleware, database helpers, and import scripts live under `legacy/mongodb/` and are **not** mounted in the default file-only deployment.
 - `public/index.html` is the bundled SPA served from `/`.
 - `GET /health` reports file storage status and memory usage.
+- Squad staff currently lists **head coach only** (Wikipedia/FIFA source); assistant coaches are not in the public squad lists.
+- On Vercel (`VERCEL=1`), storage is read-only — live sync writes are disabled; use `import:squads` + `build:squads` locally and commit updated JSON.
 
 ## Deploy on Vercel
 
@@ -159,7 +221,7 @@ Vercel runs `server.js` (via `"main"`) as the Node entrypoint. Express serves ev
 ### How Vercel mode works
 
 - `VERCEL=1` is set automatically → read-only storage (no background file writes).
-- Source JSON (`football.*.json`) is bundled with the serverless function for API reads.
+- Source JSON (`football.*.json`, including `football.squads.json`) is bundled with the serverless function for API reads.
 - Live scores: frontend polls `/get/live`; serverless may fetch fresh data from `LIVE_SYNC_URL` on each request (throttled in-memory).
 - Local dev uses `app.listen()`; on Vercel the exported Express app handles requests without listening on a port.
 
@@ -168,7 +230,10 @@ Vercel runs `server.js` (via `"main"`) as the Node entrypoint. Express serves ev
 ```text
 GET /                          → 200 HTML (web app)
 GET /data/games.json           → 200 JSON
+GET /data/squads.json          → 200 JSON (48 teams)
 GET /get/teams                 → 200 JSON
+GET /get/team/1                → 200 JSON (Mexico + squad)
+GET /get/squad/47              → 200 JSON (Ghana squad)
 GET /get/live                  → 200 JSON
 GET /health                    → 200 JSON, platform: "vercel"
 ```

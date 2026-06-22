@@ -894,6 +894,7 @@
             margin-bottom: 8px;
             transition: var(--transition);
             animation: fadeInUp 0.4s ease backwards;
+            scroll-margin-top: 160px;
         }
 
         .match-list-row:hover {
@@ -904,6 +905,18 @@
         .match-list-row.is-live {
             border-color: rgba(229, 57, 53, 0.35);
             background: linear-gradient(90deg, rgba(229, 57, 53, 0.05), white);
+        }
+
+        .match-list-row.match-focus-highlight,
+        .match-card.match-focus-highlight {
+            border-color: rgba(227, 24, 55, 0.55);
+            box-shadow: 0 0 0 2px rgba(227, 24, 55, 0.25), var(--shadow-glow);
+            animation: matchFocusPulse 1.6s ease;
+        }
+
+        @keyframes matchFocusPulse {
+            0%, 100% { box-shadow: 0 0 0 2px rgba(227, 24, 55, 0.2), var(--shadow-sm); }
+            50% { box-shadow: 0 0 0 3px rgba(227, 24, 55, 0.45), var(--shadow-glow); }
         }
 
         .match-list-time {
@@ -1007,6 +1020,7 @@
             overflow: hidden;
             box-shadow: var(--shadow-card);
             animation: fadeInUp 0.55s ease backwards;
+            scroll-margin-top: 160px;
         }
 
         .match-card::before {
@@ -1216,6 +1230,22 @@
             transition: var(--transition);
             box-shadow: var(--shadow-card);
             animation: fadeInUp 0.55s ease backwards;
+            cursor: pointer;
+        }
+
+        .team-card:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 3px;
+        }
+
+        .team-card .team-card-hint {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         .team-card:hover {
@@ -1443,6 +1473,20 @@
 
         .group-table .stat-zero {
             color: var(--text-muted);
+        }
+
+        .group-table tbody tr.is-highlighted {
+            background: rgba(227, 24, 55, 0.1) !important;
+            box-shadow: inset 3px 0 0 var(--primary);
+        }
+
+        .group-table tbody tr.is-highlighted:hover {
+            background: rgba(227, 24, 55, 0.14) !important;
+        }
+
+        .group-table tbody tr.is-highlighted .team-name-text {
+            font-weight: 700;
+            color: var(--primary);
         }
 
         /* Stadium Card */
@@ -2065,6 +2109,7 @@
             background: var(--bg-card);
             border-radius: var(--border-radius);
             padding: 40px;
+            padding-top: 48px;
             max-width: 500px;
             width: 100%;
             border: 1px solid var(--border-light);
@@ -2072,22 +2117,48 @@
             position: relative;
         }
 
-        .payment-close {
+        .modal-close {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
+            top: 14px;
+            right: 14px;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            border: 1px solid var(--border-light);
+            border-radius: 50%;
+            background: #fff;
             color: var(--text-muted);
-            font-size: 1.5rem;
             cursor: pointer;
-            padding: 5px;
-            line-height: 1;
+            line-height: 0;
+            transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
         }
 
-        [dir="ltr"] .payment-close {
-            right: auto;
-            left: 15px;
+        .modal-close svg {
+            display: block;
+            width: 14px;
+            height: 14px;
+        }
+
+        .modal-close:hover {
+            background: #F8FAFC;
+            color: var(--primary);
+            border-color: rgba(227, 24, 55, 0.22);
+            box-shadow: 0 2px 8px rgba(227, 24, 55, 0.1);
+        }
+
+        .modal-close:active {
+            transform: scale(0.94);
+        }
+
+        .modal-close:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
         }
 
         .payment-header {
@@ -2189,6 +2260,273 @@
         .payment-warning strong {
             display: block;
             margin-bottom: 5px;
+        }
+
+        /* Team standings modal (bracket → group table) */
+        .team-standings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .team-standings-modal.active {
+            display: flex;
+        }
+
+        .team-standings-content {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 22px 22px 24px;
+            padding-top: 56px;
+            max-width: 520px;
+            width: 100%;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            max-height: min(90vh, 640px);
+            overflow: auto;
+        }
+
+        .team-standings-team {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .team-standings-team img {
+            width: 52px;
+            height: 36px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+
+        .team-standings-team h3 {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .team-standings-team span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .team-standings-card .group-header {
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .team-standings-card .group-table-wrap {
+            border: 1px solid var(--border-light);
+            border-top: none;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
+
+        /* Team squad modal */
+        .team-squad-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .team-squad-modal.active {
+            display: flex;
+        }
+
+        .team-squad-content {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 22px 22px 24px;
+            padding-top: 56px;
+            max-width: 640px;
+            width: 100%;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            max-height: min(90vh, 720px);
+            overflow: auto;
+        }
+
+        .team-squad-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .team-squad-header img {
+            width: 56px;
+            height: 38px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+
+        .team-squad-header h3 {
+            font-size: 1.25rem;
+            margin-bottom: 4px;
+        }
+
+        .team-squad-header span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .squad-section {
+            margin-bottom: 22px;
+        }
+
+        .squad-section-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .squad-staff-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .squad-staff-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: #F8FAFC;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 0.88rem;
+        }
+
+        .squad-staff-row .role {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            flex-shrink: 0;
+        }
+
+        .squad-staff-row .name {
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .squad-players-wrap {
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .squad-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+        }
+
+        .squad-table thead {
+            background: #F8FAFC;
+        }
+
+        .squad-table th {
+            padding: 10px 8px;
+            text-align: center;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .squad-table th:nth-child(2) {
+            text-align: left;
+            padding-left: 12px;
+        }
+
+        .squad-table td {
+            padding: 9px 8px;
+            border-bottom: 1px solid var(--border-light);
+            text-align: center;
+        }
+
+        .squad-table td:nth-child(2) {
+            text-align: left;
+            padding-left: 12px;
+            font-weight: 600;
+        }
+
+        .squad-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .squad-table tbody tr:hover {
+            background: rgba(227, 24, 55, 0.04);
+        }
+
+        .squad-table .squad-num {
+            font-weight: 800;
+            color: var(--primary);
+            width: 36px;
+        }
+
+        .squad-table .squad-pos {
+            font-weight: 700;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .squad-table .squad-club {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .bracket-team-slot {
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .bracket-seed-row.bracket-team-slot:hover {
+            background: rgba(227, 24, 55, 0.08);
+        }
+
+        .bracket-match.adv .adv-row.bracket-team-slot {
+            margin: 0 -4px;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .bracket-match.adv .adv-row.bracket-team-slot:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
         }
 
         /* Toast Notification */
@@ -2430,6 +2768,12 @@
             margin-left: auto;
             font-weight: 800;
             color: #fff;
+        }
+
+        .bracket-seed-row.bracket-team-slot:focus-visible,
+        .bracket-match.adv .adv-row.bracket-team-slot:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 1px;
         }
 
         .bracket-match.is-live {
@@ -2817,7 +3161,11 @@
     <!-- Payment Modal -->
     <div class="payment-modal" id="paymentModal">
         <div class="payment-content">
-            <button class="payment-close" onclick="closePaymentModal()">×</button>
+            <button class="modal-close" type="button" onclick="closePaymentModal()" aria-label="Close">
+                <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+            </button>
             
             <div class="payment-header">
                 <h3 data-i18n="payment_title">پرداخت با USDT</h3>
@@ -2851,6 +3199,30 @@
                 <strong data-i18n="payment_warning">⚠️ مهم:</strong>
                 <span id="payWarningText" data-i18n="payment_warning_text">فقط USDT روی شبکه TRC20 ارسال کنید. ارسال سایر ارزها باعث از دست رفتن دارایی می‌شود.</span>
             </div>
+        </div>
+    </div>
+
+    <!-- Team standings modal (from knockout bracket) -->
+    <div class="team-standings-modal" id="teamStandingsModal">
+        <div class="team-standings-content">
+            <button class="modal-close" type="button" onclick="closeTeamStandingsModal()" aria-label="Close">
+                <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <div id="teamStandingsModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Team squad modal (from Teams tab) -->
+    <div class="team-squad-modal" id="teamSquadModal">
+        <div class="team-squad-content">
+            <button class="modal-close" type="button" onclick="closeTeamSquadModal()" aria-label="Close">
+                <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <div id="teamSquadModalBody"></div>
         </div>
     </div>
 
@@ -3010,6 +3382,13 @@
                 bracket_subtitle: 'Road to the World Cup Final — USA, Canada & Mexico 2026',
                 bracket_champion: 'WORLD CHAMPIONS',
                 bracket_bronze: 'BRONZE WINNER',
+                standings_title: 'Group Standings',
+                coaching_staff: 'Coaching Staff',
+                squad_players: 'Players',
+                squad_pos: 'Pos',
+                squad_club: 'Club',
+                view_squad: 'View squad',
+                no_squad_data: 'Squad data not available yet',
                 stadiums_title: 'Stadiums',
                 stadiums_subtitle: 'World Cup 2026 Venues',
                 loading: 'Loading...',
@@ -3082,13 +3461,15 @@
         let gamesData = [];
         let stadiumsData = [];
         let groupsData = [];
+        let squadsData = {};
 
         const API_BASE = window.location.origin;
         const DATA_URLS = {
             teams: '/data/teams.json',
             games: '/data/games.json',
             stadiums: '/data/stadiums.json',
-            groups: '/data/groups.json'
+            groups: '/data/groups.json',
+            squads: '/data/squads.json'
         };
         const LIVE_POLL_MS = 15000;
         let livePollTimer = null;
@@ -3100,6 +3481,8 @@
         let matchViewToggleInitialized = false;
         let matchFiltersInitialized = false;
         let visibilityListenerAdded = false;
+        let scrollMatchesOnNextRender = false;
+        let matchesInitialFocusDone = false;
 
         let activePageTab = 'matches';
 
@@ -3187,12 +3570,99 @@
             const url = new URL(window.location);
             if (tabId === 'matches') {
                 url.hash = '';
+                history.replaceState(null, '', url);
+                focusMatchesTab();
             } else {
                 url.hash = tabId;
+                history.replaceState(null, '', url);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-            history.replaceState(null, '', url);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             if (tabId === 'bracket') scheduleBracketLinks();
+        }
+
+        function findFocusMatch(games) {
+            const pool = games && games.length ? games : gamesData;
+            if (!pool.length) return null;
+
+            const live = sortGamesForList(pool.filter(isGameLive));
+            if (live.length) return live[0];
+
+            const todayKey = getLocalTodayKey();
+            const todayUnfinished = sortGamesForList(
+                pool.filter(g => !isGameFinished(g) && !isGameLive(g) && parseGameDateTime(g).dateKey === todayKey)
+            );
+            if (todayUnfinished.length) {
+                const now = Date.now();
+                const nextToday = todayUnfinished.find(g => parseGameDateTime(g).timestamp >= now);
+                return nextToday || todayUnfinished[todayUnfinished.length - 1];
+            }
+
+            const upcoming = sortGamesForList(pool.filter(g => !isGameFinished(g) && !isGameLive(g)));
+            const now = Date.now();
+            const next = upcoming.find(g => parseGameDateTime(g).timestamp >= now);
+            if (next) return next;
+
+            return upcoming[0] || null;
+        }
+
+        function adjustFiltersForFocusMatch() {
+            const focus = findFocusMatch(gamesData);
+            if (!focus) return false;
+
+            let changed = false;
+            const dateKey = parseGameDateTime(focus).dateKey;
+
+            if (activeMatchFilter !== 'all') {
+                activeMatchFilter = 'all';
+                const groupSelect = document.getElementById('match-group-filter');
+                if (groupSelect) groupSelect.value = 'all';
+                changed = true;
+            }
+            if (dateKey !== 'unknown' && activeMatchDateFilter !== dateKey) {
+                activeMatchDateFilter = dateKey;
+                const dateSelect = document.getElementById('match-date-filter');
+                if (dateSelect) dateSelect.value = dateKey;
+                changed = true;
+            }
+            if (changed) renderMatchDateFilter();
+            return changed;
+        }
+
+        function getMatchesScrollOffset() {
+            const tabs = document.querySelector('.page-tabs');
+            const tabsH = tabs ? tabs.getBoundingClientRect().height : 0;
+            return 68 + tabsH + 16;
+        }
+
+        function scrollToElementWithOffset(el, offset) {
+            const top = el.getBoundingClientRect().top + window.pageYOffset - offset;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        }
+
+        function scrollToFocusMatch() {
+            const focus = findFocusMatch(getFilteredMatches());
+            if (!focus) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            const el = document.querySelector(`#matches-grid [data-match-id="${String(focus.id)}"]`);
+            if (!el) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            const offset = getMatchesScrollOffset() + (matchesViewMode === 'list' ? 44 : 0);
+            scrollToElementWithOffset(el, offset);
+            el.classList.add('match-focus-highlight');
+            setTimeout(() => el.classList.remove('match-focus-highlight'), 2000);
+        }
+
+        function focusMatchesTab() {
+            if (!gamesData.length) return;
+            adjustFiltersForFocusMatch();
+            scrollMatchesOnNextRender = true;
+            renderMatchesDisplay(getFilteredMatches());
         }
 
         function initPageTabs() {
@@ -3227,6 +3697,8 @@
             initMatchFilters();
             initMatchViewToggle();
             updateMatchViewToggleUI();
+            initBracketTeamClicks();
+            initTeamSquadClicks();
             startCountdown();
             loadAllData().then(() => startLiveScorePolling());
         });
@@ -3528,15 +4000,20 @@
 
         // Load All Data — live scores first, IndexedDB fallback
         async function fetchStaticMeta() {
-            const [teamsRes, stadiumsRes] = await Promise.all([
+            const [teamsRes, stadiumsRes, squadsRes] = await Promise.all([
                 fetchWithCacheBust(DATA_URLS.teams),
-                fetchWithCacheBust(DATA_URLS.stadiums)
+                fetchWithCacheBust(DATA_URLS.stadiums),
+                fetchWithCacheBust(DATA_URLS.squads)
             ]);
             if (!teamsRes.ok || !stadiumsRes.ok) {
                 throw new Error('Static meta files not available');
             }
             const teams = await teamsRes.json();
             const stadiums = await stadiumsRes.json();
+            if (squadsRes.ok) {
+                const squads = await squadsRes.json();
+                squadsData = squads.squads || {};
+            }
             return {
                 teams: teams.teams || [],
                 stadiums: stadiums.stadiums || []
@@ -3597,11 +4074,13 @@
                     fetchWithCacheBust(DATA_URLS.teams),
                     fetchWithCacheBust(DATA_URLS.games),
                     fetchWithCacheBust(DATA_URLS.stadiums),
-                    fetchWithCacheBust(DATA_URLS.groups)
+                    fetchWithCacheBust(DATA_URLS.groups),
+                    fetchWithCacheBust(DATA_URLS.squads)
                 ]);
-                if (responses.some(r => !r.ok)) throw new Error('Static data not available');
+                if (responses.slice(0, 4).some(r => !r.ok)) throw new Error('Static data not available');
 
-                const parsed = await Promise.all(responses.map(r => r.json()));
+                const parsed = await Promise.all(responses.map(r => r.ok ? r.json() : {}));
+                if (parsed[4].squads) squadsData = parsed[4].squads;
                 applyData(
                     parsed[0].teams || [],
                     parsed[1].games || [],
@@ -3648,6 +4127,11 @@
                 dateKey: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
                 timeLabel: `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`
             };
+        }
+
+        function getLocalTodayKey() {
+            const n = new Date();
+            return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
         }
 
         function formatMatchDateHeader(dateKey, gamesInGroup) {
@@ -3787,6 +4271,11 @@
 
         // Render Matches
         function renderMatches(games) {
+            if (activePageTab === 'matches' && !matchesInitialFocusDone && games.length) {
+                matchesInitialFocusDone = true;
+                adjustFiltersForFocusMatch();
+                scrollMatchesOnNextRender = true;
+            }
             renderMatchGroupFilter(games);
             renderMatchDateFilter();
             updateMatchViewToggleUI();
@@ -3810,6 +4299,11 @@
                 grid.classList.remove('matches-list-view');
                 renderMatchCards(sortGamesForDisplay(games), 'matches-grid');
             }
+
+            if (scrollMatchesOnNextRender) {
+                scrollMatchesOnNextRender = false;
+                requestAnimationFrame(() => scrollToFocusMatch());
+            }
         }
 
         function getMatchListRowHTML(game, i) {
@@ -3832,7 +4326,7 @@
                 : `<span class="match-list-vs">${translations[currentLang].vs}</span>`;
 
             return `
-                <div class="match-list-row${live ? ' is-live' : ''}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s">
+                <div class="match-list-row${live ? ' is-live' : ''}" data-match-id="${game.id}" style="animation-delay:${Math.min(i * 0.03, 0.4)}s">
                     <div class="match-list-time">${timeLabel}</div>
                     <div class="match-list-team home">
                         <img class="team-flag" src="${flagSrc(homeTeam.flag, 'sm')}" alt="${homeName}" onerror="flagOnError(this,'sm')">
@@ -3858,7 +4352,7 @@
                 const header = formatMatchDateHeader(dateKey, dayGames);
                 const countLabel = translations[currentLang].matches_on_date.replace('{count}', dayGames.length);
                 return `
-                    <div class="match-date-group">
+                    <div class="match-date-group" data-date-key="${dateKey}">
                         <div class="match-date-header">
                             <span>${header}</span>
                             <span class="match-date-count">${countLabel}</span>
@@ -3885,7 +4379,7 @@
                 : (finished ? `<span class="match-minute">${translations[currentLang].status_ft}</span>` : '');
 
             return `
-                <div class="match-card${live ? ' is-live' : ''}" style="animation-delay:${Math.min(i * 0.05, 0.5)}s">
+                <div class="match-card${live ? ' is-live' : ''}" data-match-id="${game.id}" style="animation-delay:${Math.min(i * 0.05, 0.5)}s">
                     <div class="match-header">
                         <span class="match-group">${translations[currentLang].group} ${game.group || '-'}</span>
                         <span>${statusLabel || `${translations[currentLang].matchday} ${game.matchday || '-'}`}</span>
@@ -3981,13 +4475,148 @@
             }
             
             grid.innerHTML = teams.map(team => `
-                <div class="team-card">
+                <div class="team-card" data-team-id="${team.id}" role="button" tabindex="0" title="${translations[currentLang].view_squad}">
                     <img class="team-flag" src="${flagSrc(team.flag, 'lg')}" alt="${team.name_en}" onerror="flagOnError(this,'lg')">
                     <span class="team-name">${team.name_en}</span>
                     <span class="team-group">${translations[currentLang].group} ${team.groups || '-'}</span>
                     <span class="fifa-code">${team.fifa_code || ''}</span>
+                    <span class="team-card-hint">${translations[currentLang].view_squad}</span>
                 </div>
             `).join('');
+        }
+
+        function getSquadForTeam(teamId) {
+            return squadsData[String(teamId)] || null;
+        }
+
+        function renderSquadPlayersTable(players) {
+            const t = translations[currentLang];
+            const byPos = { GK: [], DEF: [], MID: [], FWD: [] };
+            players.forEach(p => {
+                const pos = byPos[p.position] ? p.position : 'MID';
+                byPos[pos].push(p);
+            });
+            const ordered = [...byPos.GK, ...byPos.DEF, ...byPos.MID, ...byPos.FWD];
+
+            return `
+                <div class="squad-players-wrap">
+                    <table class="squad-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>${t.squad_players}</th>
+                                <th>${t.squad_pos}</th>
+                                <th>${t.squad_club}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${ordered.map(p => `
+                                <tr>
+                                    <td class="squad-num">${p.number || '—'}</td>
+                                    <td>${p.name}</td>
+                                    <td class="squad-pos">${p.position || '—'}</td>
+                                    <td class="squad-club">${p.club || '—'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function openTeamSquadModal(teamId) {
+            const team = teamsData.find(t => String(t.id) === String(teamId));
+            if (!team) return;
+
+            const squad = getSquadForTeam(teamId);
+            const body = document.getElementById('teamSquadModalBody');
+            const t = translations[currentLang];
+            const color = GROUP_COLORS[team.groups] || '#64748b';
+
+            if (!squad || (!squad.staff?.length && !squad.players?.length)) {
+                body.innerHTML = `
+                    <div class="team-squad-header">
+                        <img src="${flagSrc(team.flag, 'lg')}" alt="${team.name_en}" onerror="flagOnError(this,'lg')">
+                        <div>
+                            <h3>${team.name_en}</h3>
+                            <span style="color:${color}">${t.group} ${team.groups || '-'} · ${team.fifa_code || ''}</span>
+                        </div>
+                    </div>
+                    <div class="no-data" style="padding:24px 0">${noDataIcon('team')}<p>${t.no_squad_data}</p></div>
+                `;
+            } else {
+                body.innerHTML = `
+                    <div class="team-squad-header">
+                        <img src="${flagSrc(team.flag, 'lg')}" alt="${team.name_en}" onerror="flagOnError(this,'lg')">
+                        <div>
+                            <h3>${team.name_en}</h3>
+                            <span style="color:${color}">${t.group} ${team.groups || '-'} · ${team.fifa_code || ''}</span>
+                        </div>
+                    </div>
+                    ${squad.staff?.length ? `
+                        <div class="squad-section">
+                            <div class="squad-section-title">${t.coaching_staff}</div>
+                            <div class="squad-staff-list">
+                                ${squad.staff.map(s => `
+                                    <div class="squad-staff-row">
+                                        <span class="role">${s.role}</span>
+                                        <span class="name">${s.name}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${squad.players?.length ? `
+                        <div class="squad-section">
+                            <div class="squad-section-title">${t.squad_players} (${squad.players.length})</div>
+                            ${renderSquadPlayersTable(squad.players)}
+                        </div>
+                    ` : ''}
+                `;
+            }
+
+            document.getElementById('teamSquadModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTeamSquadModal() {
+            document.getElementById('teamSquadModal').classList.remove('active');
+            if (!document.getElementById('paymentModal').classList.contains('active')
+                && !document.getElementById('teamStandingsModal').classList.contains('active')) {
+                document.body.style.overflow = '';
+            }
+        }
+
+        function initTeamSquadClicks() {
+            if (window.__teamSquadClicksBound) return;
+            window.__teamSquadClicksBound = true;
+
+            const grid = document.getElementById('teams-grid');
+            const modal = document.getElementById('teamSquadModal');
+
+            grid.addEventListener('click', (e) => {
+                const card = e.target.closest('.team-card[data-team-id]');
+                if (!card) return;
+                openTeamSquadModal(card.dataset.teamId);
+            });
+
+            grid.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const card = e.target.closest('.team-card[data-team-id]');
+                if (!card) return;
+                e.preventDefault();
+                openTeamSquadModal(card.dataset.teamId);
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeTeamSquadModal();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    closeTeamSquadModal();
+                }
+            });
         }
 
         // Knockout Bracket
@@ -4088,10 +4717,11 @@
             const score = (game && shouldShowScore(game))
                 ? `<span class="${white ? 'seed-score' : 'adv-score'}">${(side === 'home' ? game.home_score : game.away_score) || 0}</span>`
                 : '';
-            if (white) {
-                return `<div class="bracket-seed-row">${flag}<span class="seed-name">${name}</span>${score}</div>`;
-            }
-            return `<div class="adv-row${known ? '' : ' seed'}">${flag}<span class="seed-name">${name}</span>${score}</div>`;
+            const rowClass = white ? 'bracket-seed-row' : `adv-row${known ? '' : ' seed'}`;
+            const clickAttrs = known
+                ? ` class="${rowClass} bracket-team-slot" data-team-id="${teamId}" role="button" tabindex="0" title="${translations[currentLang].standings_title || 'Group Standings'}"`
+                : ` class="${rowClass}"`;
+            return `<div${clickAttrs}>${flag}<span class="seed-name">${name}</span>${score}</div>`;
         }
 
         function renderBracketMatch(id, kind) {
@@ -4258,6 +4888,156 @@
         }
 
         // Render Groups
+        function sortGroupTeams(groupTeams) {
+            return [...groupTeams].sort((a, b) => {
+                const ptsA = parseInt(a.pts) || 0;
+                const ptsB = parseInt(b.pts) || 0;
+                if (ptsB !== ptsA) return ptsB - ptsA;
+                const gdA = parseInt(a.gd) || 0;
+                const gdB = parseInt(b.gd) || 0;
+                return gdB - gdA;
+            });
+        }
+
+        function renderGroupTableRows(groupTeams, highlightTeamId) {
+            const sortedTeams = sortGroupTeams(groupTeams);
+            return sortedTeams.map((teamInfo, index) => {
+                const team = teamsData.find(t => String(t.id) === String(teamInfo.team_id)) || {};
+                const gd = parseInt(teamInfo.gd) || 0;
+                const gdClass = gd > 0 ? 'stat-positive' : (gd < 0 ? 'stat-negative' : 'stat-zero');
+                const rankClass = `rank-${index + 1}`;
+                const highlighted = highlightTeamId && String(teamInfo.team_id) === String(highlightTeamId);
+
+                return `
+                    <tr class="${highlighted ? 'is-highlighted' : ''}">
+                        <td><span class="rank ${rankClass}">${index + 1}</span></td>
+                        <td>
+                            <div class="team-cell">
+                                <img src="${flagSrc(team.flag, 'sm')}" alt="${team.name_en || ''}" onerror="flagOnError(this,'sm')">
+                                <span class="team-name-text">${team.name_en || 'Unknown'}</span>
+                            </div>
+                        </td>
+                        <td>${teamInfo.mp || 0}</td>
+                        <td class="stat-positive">${teamInfo.w || 0}</td>
+                        <td class="stat-zero">${teamInfo.d || 0}</td>
+                        <td class="stat-negative">${teamInfo.l || 0}</td>
+                        <td>${teamInfo.gf || 0}</td>
+                        <td>${teamInfo.ga || 0}</td>
+                        <td class="${gdClass}">${gd > 0 ? '+' : ''}${gd}</td>
+                        <td class="pts-cell">${teamInfo.pts || 0}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderGroupTable(groupTeams, highlightTeamId) {
+            const t = translations[currentLang];
+            return `
+                <table class="group-table">
+                    <colgroup>
+                        <col class="col-rank">
+                        <col class="col-team">
+                        <col class="col-stat" span="7">
+                        <col class="col-pts">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th style="text-align:left; padding-left: 15px;">Team</th>
+                            <th>${t.mp}</th>
+                            <th>${t.w}</th>
+                            <th>${t.d}</th>
+                            <th>${t.l}</th>
+                            <th>GF</th>
+                            <th>GA</th>
+                            <th>${t.gd}</th>
+                            <th>${t.pts}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${renderGroupTableRows(groupTeams, highlightTeamId)}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function findGroupByTeamId(teamId) {
+            const id = String(teamId);
+            return groupsData.find(g => (g.teams || []).some(t => String(t.team_id) === id));
+        }
+
+        function openTeamStandingsModal(teamId) {
+            const team = teamsData.find(t => String(t.id) === String(teamId));
+            const group = findGroupByTeamId(teamId);
+            if (!team || !group) return;
+
+            const groupCode = String(group.group || group.name || '-').trim().toUpperCase();
+            const color = GROUP_COLORS[groupCode] || '#64748b';
+            const body = document.getElementById('teamStandingsModalBody');
+
+            body.innerHTML = `
+                <div class="team-standings-team">
+                    <img src="${flagSrc(team.flag, 'lg')}" alt="${team.name_en}" onerror="flagOnError(this,'lg')">
+                    <div>
+                        <h3>${team.name_en}</h3>
+                        <span>${translations[currentLang].group} ${groupCode} · ${translations[currentLang].standings_title || 'Group Standings'}</span>
+                    </div>
+                </div>
+                <div class="team-standings-card group-card" style="--group-header-color: ${color};">
+                    <div class="group-header">
+                        <span class="group-header-title">${icon('ball', 'sm', 'ui-icon-white')} ${translations[currentLang].group} ${groupCode}</span>
+                        <span class="group-icon">${icon('trophy', 'sm', 'ui-icon-white')}</span>
+                    </div>
+                    <div class="group-table-wrap">
+                        ${renderGroupTable(group.teams || [], teamId)}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('teamStandingsModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTeamStandingsModal() {
+            document.getElementById('teamStandingsModal').classList.remove('active');
+            if (!document.getElementById('paymentModal').classList.contains('active')
+                && !document.getElementById('teamSquadModal').classList.contains('active')) {
+                document.body.style.overflow = '';
+            }
+        }
+
+        function initBracketTeamClicks() {
+            if (window.__bracketTeamClicksBound) return;
+            window.__bracketTeamClicksBound = true;
+
+            const board = document.getElementById('bracket-board');
+            const modal = document.getElementById('teamStandingsModal');
+
+            board.addEventListener('click', (e) => {
+                const slot = e.target.closest('.bracket-team-slot[data-team-id]');
+                if (!slot) return;
+                openTeamStandingsModal(slot.dataset.teamId);
+            });
+
+            board.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const slot = e.target.closest('.bracket-team-slot[data-team-id]');
+                if (!slot) return;
+                e.preventDefault();
+                openTeamStandingsModal(slot.dataset.teamId);
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeTeamStandingsModal();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    closeTeamStandingsModal();
+                }
+            });
+        }
+
         function renderGroups(groups) {
             const grid = document.getElementById('groups-grid');
             
@@ -4271,16 +5051,6 @@
                 const color = GROUP_COLORS[groupCode] || '#64748b';
                 const groupTeams = group.teams || [];
                 
-                // Sort teams by points, then goal difference
-                const sortedTeams = [...groupTeams].sort((a, b) => {
-                    const ptsA = parseInt(a.pts) || 0;
-                    const ptsB = parseInt(b.pts) || 0;
-                    if (ptsB !== ptsA) return ptsB - ptsA;
-                    const gdA = parseInt(a.gd) || 0;
-                    const gdB = parseInt(b.gd) || 0;
-                    return gdB - gdA;
-                });
-                
                 return `
                     <div class="group-card" style="--group-header-color: ${color};">
                         <div class="group-header">
@@ -4288,56 +5058,7 @@
                             <span class="group-icon">${icon('trophy', 'sm', 'ui-icon-white')}</span>
                         </div>
                         <div class="group-table-wrap">
-                        <table class="group-table">
-                            <colgroup>
-                                <col class="col-rank">
-                                <col class="col-team">
-                                <col class="col-stat" span="7">
-                                <col class="col-pts">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th style="text-align:left; padding-left: 15px;">Team</th>
-                                    <th>${translations[currentLang].mp}</th>
-                                    <th>${translations[currentLang].w}</th>
-                                    <th>${translations[currentLang].d}</th>
-                                    <th>${translations[currentLang].l}</th>
-                                    <th>GF</th>
-                                    <th>GA</th>
-                                    <th>${translations[currentLang].gd}</th>
-                                    <th>${translations[currentLang].pts}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${sortedTeams.map((teamInfo, index) => {
-                                    const team = teamsData.find(t => t.id === teamInfo.team_id) || {};
-                                    const gd = parseInt(teamInfo.gd) || 0;
-                                    const gdClass = gd > 0 ? 'stat-positive' : (gd < 0 ? 'stat-negative' : 'stat-zero');
-                                    const rankClass = `rank-${index + 1}`;
-                                    
-                                    return `
-                                        <tr>
-                                            <td><span class="rank ${rankClass}">${index + 1}</span></td>
-                                            <td>
-                                                <div class="team-cell">
-                                                    <img src="${flagSrc(team.flag, 'sm')}" alt="${team.name_en || ''}" onerror="flagOnError(this,'sm')">
-                                                    <span class="team-name-text">${team.name_en || 'Unknown'}</span>
-                                                </div>
-                                            </td>
-                                            <td>${teamInfo.mp || 0}</td>
-                                            <td class="stat-positive">${teamInfo.w || 0}</td>
-                                            <td class="stat-zero">${teamInfo.d || 0}</td>
-                                            <td class="stat-negative">${teamInfo.l || 0}</td>
-                                            <td>${teamInfo.gf || 0}</td>
-                                            <td>${teamInfo.ga || 0}</td>
-                                            <td class="${gdClass}">${gd > 0 ? '+' : ''}${gd}</td>
-                                            <td class="pts-cell">${teamInfo.pts || 0}</td>
-                                        </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
+                        ${renderGroupTable(groupTeams)}
                         </div>
                     </div>
                 `;
@@ -4545,7 +5266,10 @@
         // Close payment modal
         function closePaymentModal() {
             document.getElementById('paymentModal').classList.remove('active');
-            document.body.style.overflow = '';
+            if (!document.getElementById('teamStandingsModal').classList.contains('active')
+                && !document.getElementById('teamSquadModal').classList.contains('active')) {
+                document.body.style.overflow = '';
+            }
             loadRecentDonations(); // Reload donations
         }
         

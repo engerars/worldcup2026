@@ -9,7 +9,8 @@ const SOURCE_FILES = {
     teams: require('../football.teams.json'),
     games: require('../football.matches.json'),
     groups: require('../football.matchtables.json'),
-    stadiums: require('../football.stadiums.json')
+    stadiums: require('../football.stadiums.json'),
+    squads: require('../football.squads.json')
 };
 
 function normalizeMongoJson(value) {
@@ -37,7 +38,8 @@ function loadSourceData() {
             teams: loadJson('football.teams.json'),
             games: loadJson('football.matches.json'),
             groups: loadJson('football.matchtables.json'),
-            stadiums: loadJson('football.stadiums.json')
+            stadiums: loadJson('football.stadiums.json'),
+            squads: loadJson('football.squads.json')
         };
     } catch (err) {
         if (err.code !== 'ENOENT') throw err;
@@ -45,7 +47,8 @@ function loadSourceData() {
             teams: normalizeMongoJson(SOURCE_FILES.teams),
             games: normalizeMongoJson(SOURCE_FILES.games),
             groups: normalizeMongoJson(SOURCE_FILES.groups),
-            stadiums: normalizeMongoJson(SOURCE_FILES.stadiums)
+            stadiums: normalizeMongoJson(SOURCE_FILES.stadiums),
+            squads: normalizeMongoJson(SOURCE_FILES.squads)
         };
     }
 }
@@ -175,6 +178,11 @@ function getStadiumById(id) {
     return getStore().stadiums.find(s => s.id === id) || null;
 }
 
+function getSquadByTeamId(id) {
+    const squads = getStore().squads || {};
+    return squads[String(id)] || null;
+}
+
 function exportPublicData(quiet) {
     if (loadEnvConfig().READ_ONLY_STORAGE) {
         return;
@@ -190,7 +198,8 @@ function exportPublicData(quiet) {
         'teams.json': { teams: storeData.teams },
         'games.json': { games: getAllGames() },
         'groups.json': { groups: storeData.groups },
-        'stadiums.json': { stadiums: storeData.stadiums }
+        'stadiums.json': { stadiums: storeData.stadiums },
+        'squads.json': { squads: storeData.squads || {} }
     };
 
     Object.entries(files).forEach(([name, data]) => {
@@ -216,5 +225,6 @@ module.exports = {
     getGroupByName,
     getAllStadiums,
     getStadiumById,
+    getSquadByTeamId,
     exportPublicData
 };
