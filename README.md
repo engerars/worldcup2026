@@ -10,22 +10,25 @@ Default deployment:
 
 ## Web app (`public/index.html`)
 
-Single-page app served from `/` with four main tabs:
+Single-page app served from `/` with seven tabs:
 
 | Tab | Features |
 |-----|----------|
-| **Matches** | Schedule by date; auto-scrolls to live match, today's unfinished games, or next upcoming fixture when opened |
-| **Groups** | Standings for all 12 groups (A–L) |
-| **Knockout** | Bracket; click a team to open group standings with that team highlighted |
-| **Teams** | 48 team cards; click a team to open squad modal (head coach + 26 players by position) |
+| **Home** | Countdown, stats, hero |
+| **Live** | Matches in progress with live badge |
+| **Matches** | Schedule by date; auto-scrolls to live, today's unfinished, or next upcoming fixture |
+| **Teams** | 48 team cards; click to open squad modal (head coach + 26 players) |
+| **Groups** | Standings for all 12 groups (**A–L**, sorted) |
+| **Bracket** | Knockout bracket; click a team to open group standings with highlight |
+| **Stadiums** | 16 host venues with photos |
 
-Static data is loaded from `public/data/*.json`. Live scores poll `/get/live` (or refresh static JSON when live sync is active).
+**Data loading:** live scores poll `/get/live` every **15s**; squads load from `/get/squads` first (fallback `/data/squads.json`); teams/stadiums from static JSON. IndexedDB caches teams, games, groups, stadiums, and squads for offline fallback.
 
 ## API endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/get/groups` | All group standings |
+| `GET` | `/get/groups` | All group standings (sorted A–L) |
 | `GET` | `/get/group?name=A` | Single group by letter |
 | `GET` | `/get/teams` | All teams (`?group=A` optional) |
 | `GET` | `/get/team/:idTeam` | Team info + squad |
@@ -162,8 +165,8 @@ worldcup2026/
 
 ## Notes
 
-- MongoDB-only controllers, models, middleware, database helpers, and import scripts live under `legacy/mongodb/` and are **not** mounted in the default file-only deployment.
-- `public/index.html` is the bundled SPA served from `/`.
+- `legacy/mongodb/` holds the old MongoDB stack (auth, donations, imports). It is **not mounted** in file-mode deployment.
+- `public/index.html` is the bundled English-only SPA served from `/`.
 - `GET /health` reports file storage status and memory usage.
 - Squad staff currently lists **head coach only** (Wikipedia/FIFA source); assistant coaches are not in the public squad lists.
 - On Vercel (`VERCEL=1`), storage is read-only — live sync writes are disabled; run `npm run import:squads` locally and commit updated JSON.

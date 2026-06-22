@@ -36,7 +36,6 @@ function loadEnvConfig() {
     LIVE_SYNC_ENABLED: process.env.LIVE_SYNC_ENABLED !== 'false',
     LIVE_SYNC_URL: process.env.LIVE_SYNC_URL || 'https://worldcup26.ir',
     LIVE_SYNC_INTERVAL_MS: parseInt(process.env.LIVE_SYNC_INTERVAL_MS, 10) || 30000,
-    LIVE_POLL_INTERVAL_MS: parseInt(process.env.LIVE_POLL_INTERVAL_MS, 10) || 30000,
     getCorsOrigins: function() {
       const origins = process.env.CORS_ORIGINS || '*';
       if (origins === '*') return '*';

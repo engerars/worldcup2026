@@ -6,7 +6,7 @@ const options = {
     openapi: '3.0.0',
     info: {
       title: 'FIFA World Cup 2026 API',
-      version: '1.0.4',
+      version: '1.0.5',
       description: 'Complete REST API for FIFA World Cup 2026 - United States, Mexico & Canada',
       contact: {
         name: 'API Support',

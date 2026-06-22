@@ -6,5 +6,4 @@ module.exports = app => {
     // Static requires so Vercel's bundler traces all controller dependencies
     require('./getController')(app);
     require('./healthController')(app);
-    require('./seoController')(app);
 };

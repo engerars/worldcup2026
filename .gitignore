@@ -11,5 +11,6 @@ build/
 .env.*
 !.env.example
 
-# MongoDB user creation script (contains passwords)
-create-mongodb-user.js
+# Legacy CSV/JSON import sources (not used by file-mode runtime)
+worldcup2026.*.csv
+worldcup2026.groups.json
