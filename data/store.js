@@ -198,12 +198,20 @@ function exportPublicData(quiet) {
     }
 
     const storeData = getStore();
+    let squads = storeData.squads || {};
+    try {
+        squads = loadJson('football.squads.json');
+        storeData.squads = squads;
+    } catch (_) {
+        /* keep in-memory squads if file missing */
+    }
+
     const files = {
         'teams.json': { teams: storeData.teams },
         'games.json': { games: getAllGames() },
         'groups.json': { groups: storeData.groups },
         'stadiums.json': { stadiums: storeData.stadiums },
-        'squads.json': { squads: storeData.squads || {} }
+        'squads.json': { squads }
     };
 
     Object.entries(files).forEach(([name, data]) => {
