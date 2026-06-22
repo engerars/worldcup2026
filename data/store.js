@@ -160,11 +160,17 @@ function getGameById(id) {
 }
 
 function getAllGroups() {
-    return getStore().groups;
+    const groups = getStore().groups || [];
+    return [...groups].sort((a, b) => {
+        const nameA = String(a.group || a.name || '').toUpperCase();
+        const nameB = String(b.group || b.name || '').toUpperCase();
+        return nameA.localeCompare(nameB);
+    });
 }
 
 function getGroupByName(name) {
-    const group = getStore().groups.find(g => g.group === name.toUpperCase());
+    const upper = name.toUpperCase();
+    const group = getStore().groups.find(g => String(g.group || g.name || '').toUpperCase() === upper);
     if (!group) return null;
     const teams = getStore().teams.filter(t => t.groups === name.toUpperCase());
     return { group, teams };
@@ -209,7 +215,7 @@ function exportPublicData(quiet) {
     const files = {
         'teams.json': { teams: storeData.teams },
         'games.json': { games: getAllGames() },
-        'groups.json': { groups: storeData.groups },
+        'groups.json': { groups: getAllGroups() },
         'stadiums.json': { stadiums: storeData.stadiums },
         'squads.json': { squads }
     };

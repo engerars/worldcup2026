@@ -4466,7 +4466,7 @@
             const tabsContainer = document.getElementById('team-tabs');
             
             // Create tabs
-            const groups = ['all', ...new Set(teams.map(t => t.groups).filter(Boolean))];
+            const groups = ['all', ...[...new Set(teams.map(t => t.groups).filter(Boolean))].sort((a, b) => a.localeCompare(b))];
             tabsContainer.innerHTML = groups.map(g => `
                 <button class="tab-btn ${g === 'all' ? 'active' : ''}" onclick="filterTeams('${g}')">
                     ${g === 'all' ? translations[currentLang].all_teams : translations[currentLang].group + ' ' + g}
@@ -4906,6 +4906,14 @@
         }
 
         // Render Groups
+        function sortGroups(groups) {
+            return [...groups].sort((a, b) => {
+                const codeA = String(a.group || a.name || '').trim().toUpperCase();
+                const codeB = String(b.group || b.name || '').trim().toUpperCase();
+                return codeA.localeCompare(codeB);
+            });
+        }
+
         function sortGroupTeams(groupTeams) {
             return [...groupTeams].sort((a, b) => {
                 const ptsA = parseInt(a.pts) || 0;
@@ -5064,7 +5072,7 @@
                 return;
             }
             
-            grid.innerHTML = groups.map(group => {
+            grid.innerHTML = sortGroups(groups).map(group => {
                 const groupCode = String(group.group || group.name || '-').trim().toUpperCase();
                 const color = GROUP_COLORS[groupCode] || '#64748b';
                 const groupTeams = group.teams || [];
