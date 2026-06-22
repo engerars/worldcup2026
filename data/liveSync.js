@@ -1,5 +1,6 @@
 const axios = require('axios');
 const store = require('./store');
+const { validateLivePayload } = require('./validateLiveData');
 const { loadEnvConfig } = require('../config/env');
 
 let lastSyncAt = 0;
@@ -27,12 +28,18 @@ async function syncLiveScores(force = false) {
         const games = gamesRes.data && gamesRes.data.games;
         const groups = groupsRes.data && groupsRes.data.groups;
 
-        if (!Array.isArray(games) || !Array.isArray(groups)) {
-            throw new Error('Invalid live data response');
+        const validation = validateLivePayload({
+            games,
+            groups,
+            teams: store.getAllTeams(),
+            currentGames: store.getStore().games
+        });
+        if (!validation.ok) {
+            throw new Error(`Live data rejected: ${validation.errors.slice(0, 3).join('; ')}`);
         }
 
-        store.setLiveData({ games, groups });
-        console.log(`🔴 Live sync OK — ${games.length} games, ${groups.length} groups`);
+        store.setLiveData({ games: validation.games, groups: validation.groups });
+        console.log(`🔴 Live sync OK — ${validation.games.length} games, ${validation.groups.length} groups`);
     } catch (err) {
         console.warn(`⚠️ Live sync failed: ${err.message}`);
     }

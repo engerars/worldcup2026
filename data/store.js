@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { loadEnvConfig } = require('../config/env');
+const { validateLivePayload } = require('./validateLiveData');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -82,8 +83,19 @@ function stripGameForStorage(game) {
 
 function setLiveData({ games, groups }) {
     if (!cache) getStore();
-    if (games) cache.games = games.map(stripGameForStorage);
-    if (groups) cache.groups = groups;
+
+    const validation = validateLivePayload({
+        games: games || cache.games,
+        groups: groups || cache.groups,
+        teams: cache.teams,
+        currentGames: cache.games
+    });
+    if (!validation.ok) {
+        throw new Error(`Refusing to apply live data: ${validation.errors.slice(0, 3).join('; ')}`);
+    }
+
+    if (games) cache.games = validation.games.map(stripGameForStorage);
+    if (groups) cache.groups = validation.groups;
     lastUpdated = Date.now();
 
     const readOnly = loadEnvConfig().READ_ONLY_STORAGE;
@@ -134,9 +146,22 @@ function getTeamById(id) {
     return getStore().teams.find(t => t._id === id || t.id === id) || null;
 }
 
+function normalizeTeamLookupName(name) {
+    return String(name || '').trim().toLowerCase();
+}
+
 function getTeamByName(name) {
-    const normalized = name.charAt(0).toUpperCase() + name.slice(1);
-    return getStore().teams.find(t => t.name_en === normalized || t.name_fa === name) || null;
+    const query = normalizeTeamLookupName(name);
+    if (!query) return null;
+
+    return getStore().teams.find((team) => {
+        const candidates = [
+            team.name_en,
+            team.name_fa,
+            team.fifa_code
+        ].filter(Boolean).map(normalizeTeamLookupName);
+        return candidates.includes(query);
+    }) || null;
 }
 
 function getAllGames() {

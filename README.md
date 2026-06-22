@@ -103,6 +103,7 @@ npm run dev            # Development on port 3051
 npm run prod           # NODE_ENV=production
 npm run export:data    # Export football.*.json → public/data/
 npm run import:squads  # Fetch official squads from Wikipedia (FIFA-sourced)
+npm test               # Unit tests (store, live payload validation)
 npm run test:load      # Simple load test
 ```
 
@@ -121,7 +122,7 @@ npm run import:squads   # → football.squads.json, public/data/squads.json
 1. `server.js` loads env, bootstraps data, and exports the Express app (Vercel entrypoint + local `npm start`).
 2. In file mode, `data/store.js` loads bundled `football.*.json` files.
 3. `data/store.js` exports browser-ready copies to `public/data/` (teams, games, groups, stadiums, squads).
-4. `data/liveSync.js` polls the public feed and rewrites match/standings snapshots when enabled.
+4. `data/liveSync.js` polls the public feed; payloads are validated in `data/validateLiveData.js` before `setLiveData()` writes files.
 5. `controllers/getController.js` serves the read API.
 
 ## Project structure
@@ -140,12 +141,16 @@ worldcup2026/
 |   `-- seoController.js
 |-- data/
 |   |-- store.js
-|   `-- liveSync.js
+|   |-- liveSync.js
+|   `-- validateLiveData.js    # Reject bad upstream live payloads
+|-- tests/
+|   `-- api.test.js            # node:test — store + validation
 |-- scripts/
 |   |-- import-wikipedia-squads.js   # Import FIFA squads → football.squads.json
 |   `-- fetch-stadiums.js
 |-- public/
-|   |-- index.html            # SPA (matches, groups, knockout, teams)
+|   |-- index.html            # SPA shell
+|   |-- app.js                # SPA logic (extracted from index.html)
 |   |-- data/
 |   |   |-- teams.json
 |   |   |-- games.json
@@ -165,8 +170,9 @@ worldcup2026/
 
 ## Notes
 
-- `legacy/mongodb/` holds the old MongoDB stack (auth, donations, imports). It is **not mounted** in file-mode deployment.
-- `public/index.html` is the bundled English-only SPA served from `/`.
+- `legacy/mongodb/` holds the old MongoDB stack (auth, donations, imports). It is **not mounted** in file-mode deployment — see `legacy/mongodb/README.md`.
+- `public/index.html` + `public/app.js` — English-only SPA.
+- Live sync validates upstream games/groups (shape, counts, known team IDs) before overwriting local JSON.
 - `GET /health` reports file storage status and memory usage.
 - Squad staff currently lists **head coach only** (Wikipedia/FIFA source); assistant coaches are not in the public squad lists.
 - On Vercel (`VERCEL=1`), storage is read-only — live sync writes are disabled; run `npm run import:squads` locally and commit updated JSON.
