@@ -99,17 +99,15 @@ npm run dev            # Development on port 3051
 npm run prod           # NODE_ENV=production
 npm run export:data    # Export football.*.json → public/data/
 npm run import:squads  # Fetch official squads from Wikipedia (FIFA-sourced)
-npm run build:squads   # Build football.squads.json + public/data/squads.json
 npm run test:load      # Simple load test
 ```
 
 ### Updating squad data
 
-Official squads are imported from [Wikipedia – 2026 FIFA World Cup squads](https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_squads) (sourced from FIFA announcements). FIFA PDF: [SquadLists-English.pdf](https://fdp.fifa.org/assetspublic/ce281/pdf/SquadLists-English.pdf).
+Official squads are imported from [Wikipedia – 2026 FIFA World Cup squads](https://en.wikipedia.org/wiki/2026_FIFA_World_Cup_squads) (sourced from FIFA). FIFA PDF: [SquadLists-English.pdf](https://fdp.fifa.org/assetspublic/ce281/pdf/SquadLists-English.pdf).
 
 ```bash
-npm run import:squads   # → scripts/squad-players-seed.json, scripts/squad-coaches.json
-npm run build:squads    # → football.squads.json, public/data/squads.json
+npm run import:squads   # → football.squads.json, public/data/squads.json
 ```
 
 `import:squads` requires network access. Re-run after FIFA squad changes.
@@ -140,10 +138,7 @@ worldcup2026/
 |   |-- store.js
 |   `-- liveSync.js
 |-- scripts/
-|   |-- import-wikipedia-squads.js   # Import FIFA squads from Wikipedia
-|   |-- build-squads.js              # Merge squads → football.squads.json
-|   |-- squad-players-seed.json        # 48 × 26 players (generated)
-|   |-- squad-coaches.json             # Head coaches (generated)
+|   |-- import-wikipedia-squads.js   # Import FIFA squads → football.squads.json
 |   `-- fetch-stadiums.js
 |-- public/
 |   |-- index.html            # SPA (matches, groups, knockout, teams)
@@ -170,7 +165,7 @@ worldcup2026/
 - `public/index.html` is the bundled SPA served from `/`.
 - `GET /health` reports file storage status and memory usage.
 - Squad staff currently lists **head coach only** (Wikipedia/FIFA source); assistant coaches are not in the public squad lists.
-- On Vercel (`VERCEL=1`), storage is read-only — live sync writes are disabled; use `import:squads` + `build:squads` locally and commit updated JSON.
+- On Vercel (`VERCEL=1`), storage is read-only — live sync writes are disabled; run `npm run import:squads` locally and commit updated JSON.
 
 ## Deploy on Vercel
 

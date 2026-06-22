@@ -4013,6 +4013,8 @@
             if (squadsRes.ok) {
                 const squads = await squadsRes.json();
                 squadsData = squads.squads || {};
+            } else {
+                squadsData = {};
             }
             return {
                 teams: teams.teams || [],
@@ -4081,6 +4083,7 @@
 
                 const parsed = await Promise.all(responses.map(r => r.ok ? r.json() : {}));
                 if (parsed[4].squads) squadsData = parsed[4].squads;
+                else squadsData = {};
                 applyData(
                     parsed[0].teams || [],
                     parsed[1].games || [],

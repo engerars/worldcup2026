@@ -1,6 +1,7 @@
 /**
- * Import official 2026 World Cup squads from Wikipedia (sourced from FIFA).
- * Run: node scripts/import-wikipedia-squads.js
+ * Import official 2026 World Cup squads from Wikipedia (FIFA-sourced)
+ * and write football.squads.json + public/data/squads.json directly.
+ * Run: npm run import:squads
  */
 const fs = require('fs');
 const path = require('path');
@@ -18,6 +19,8 @@ const SKIP_SECTIONS = new Set([
     'References',
     'External links'
 ]);
+
+const POSITION_ORDER = { GK: 0, DEF: 1, MID: 2, FWD: 3 };
 
 const WIKI_ALIASES = {
     'DR Congo': 'Democratic Republic of the Congo'
@@ -60,6 +63,14 @@ function parsePlayerLine(line) {
     };
 }
 
+function sortPlayers(players) {
+    return [...players].sort((a, b) => {
+        const pd = (POSITION_ORDER[a.position] ?? 9) - (POSITION_ORDER[b.position] ?? 9);
+        if (pd !== 0) return pd;
+        return a.number - b.number;
+    });
+}
+
 function parseSquads(wikitext) {
     const sections = {};
     const parts = wikitext.split(/^===([^=]+)===$/m);
@@ -94,10 +105,17 @@ async function main() {
     const wikitext = await res.text();
 
     const sections = parseSquads(wikitext);
-    const players = {};
-    const coaches = {};
+    const squads = {};
     const missing = [];
     const stats = [];
+
+    teams.forEach((team) => {
+        squads[String(team.id)] = {
+            team_id: String(team.id),
+            staff: [{ role: 'Head Coach', name: 'TBD' }],
+            players: []
+        };
+    });
 
     Object.entries(sections).forEach(([wikiName, body]) => {
         const teamId = resolveTeamId(wikiName, byName);
@@ -107,23 +125,28 @@ async function main() {
         }
 
         const coach = parseCoach(body);
-        if (coach) coaches[teamId] = { head: coach, staff: [] };
-
         const lines = body.match(/\{\{nat fs g player\|[^}]+\}\}/g) || [];
-        players[teamId] = lines.map(parsePlayerLine).filter((p) => p.name);
-        stats.push({ wikiName, teamId, players: players[teamId].length, coach });
+        const players = sortPlayers(lines.map(parsePlayerLine).filter((p) => p.name));
+
+        squads[teamId] = {
+            team_id: teamId,
+            staff: [{ role: 'Head Coach', name: coach || 'TBD' }],
+            players
+        };
+        stats.push({ wikiName, teamId, players: players.length, coach });
     });
 
-    const playersPath = path.join(__dirname, 'squad-players-seed.json');
-    const coachesPath = path.join(__dirname, 'squad-coaches.json');
-    fs.writeFileSync(playersPath, JSON.stringify(players, null, 2));
-    fs.writeFileSync(coachesPath, JSON.stringify(coaches, null, 2));
+    const outRoot = path.join(ROOT, 'football.squads.json');
+    const outPublic = path.join(ROOT, 'public', 'data', 'squads.json');
+    fs.writeFileSync(outRoot, JSON.stringify(squads, null, 2));
+    fs.mkdirSync(path.dirname(outPublic), { recursive: true });
+    fs.writeFileSync(outPublic, JSON.stringify({ squads }, null, 2));
 
-    const teamCount = Object.keys(players).length;
-    const playerTotal = Object.values(players).reduce((n, arr) => n + arr.length, 0);
-    console.log(`✅ Imported ${teamCount} teams, ${playerTotal} players`);
-    console.log(`   → ${playersPath}`);
-    console.log(`   → ${coachesPath}`);
+    const teamCount = stats.length;
+    const playerTotal = stats.reduce((n, s) => n + s.players, 0);
+    console.log(`✅ Wrote ${teamCount} squads (${playerTotal} players)`);
+    console.log(`   → ${outRoot}`);
+    console.log(`   → ${outPublic}`);
 
     const bad = stats.filter((s) => s.players !== 26);
     if (bad.length) {
@@ -133,9 +156,9 @@ async function main() {
         console.warn('⚠ Unmapped Wikipedia sections:', missing.join(', '));
     }
 
-    const noCoach = teams.map((t) => String(t.id)).filter((id) => !coaches[id]);
+    const noCoach = stats.filter((s) => !s.coach);
     if (noCoach.length) {
-        console.warn('⚠ Teams missing coach:', noCoach.join(', '));
+        console.warn('⚠ Teams missing coach:', noCoach.map((s) => s.wikiName).join(', '));
     }
 }
 
