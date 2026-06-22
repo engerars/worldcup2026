@@ -29,6 +29,7 @@ Static data is loaded from `public/data/*.json`. Live scores poll `/get/live` (o
 | `GET` | `/get/group?name=A` | Single group by letter |
 | `GET` | `/get/teams` | All teams (`?group=A` optional) |
 | `GET` | `/get/team/:idTeam` | Team info + squad |
+| `GET` | `/get/squads` | All squads (coach + 26 players per team) |
 | `GET` | `/get/squad/:idTeam` | Squad only (coach + 26 players) |
 | `GET` | `/get/team?name=Mexico` | Team by English name (no squad) |
 | `GET` | `/get/games` | All matches |

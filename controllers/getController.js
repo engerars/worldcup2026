@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const store = require('../data/store');
+const { loadEnvConfig } = require('../config/env');
 
 router.get('/groups', (req, res) => {
     try {
@@ -35,6 +36,15 @@ router.get('/team/:idTeam', (req, res) => {
         return res.send({ team, squad });
     } catch (err) {
         return res.status(400).send({ error: `Error getting team with id:${req.params.idTeam}` });
+    }
+});
+
+router.get('/squads', (req, res) => {
+    try {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+        return res.status(200).json({ squads: store.getAllSquads() });
+    } catch (err) {
+        return res.status(400).json({ error: 'Error getting all squads', details: err.message });
     }
 });
 

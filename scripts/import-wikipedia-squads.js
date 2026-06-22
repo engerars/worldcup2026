@@ -140,7 +140,15 @@ async function main() {
     const outPublic = path.join(ROOT, 'public', 'data', 'squads.json');
     fs.writeFileSync(outRoot, JSON.stringify(squads, null, 2));
     fs.mkdirSync(path.dirname(outPublic), { recursive: true });
-    fs.writeFileSync(outPublic, JSON.stringify({ squads }, null, 2));
+    fs.writeFileSync(outPublic, JSON.stringify({ squads }));
+
+    // Keep public export in sync with source of truth
+    try {
+        require('../data/store').reloadStore();
+        require('../data/store').exportPublicData(true);
+    } catch (_) {
+        /* export optional when store unavailable */
+    }
 
     const teamCount = stats.length;
     const playerTotal = stats.reduce((n, s) => n + s.players, 0);

@@ -183,6 +183,10 @@ function getSquadByTeamId(id) {
     return squads[String(id)] || null;
 }
 
+function getAllSquads() {
+    return getStore().squads || {};
+}
+
 function exportPublicData(quiet) {
     if (loadEnvConfig().READ_ONLY_STORAGE) {
         return;
@@ -226,5 +230,6 @@ module.exports = {
     getAllStadiums,
     getStadiumById,
     getSquadByTeamId,
+    getAllSquads,
     exportPublicData
 };

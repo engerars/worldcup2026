@@ -3847,6 +3847,29 @@
             return fetch(`${url}${sep}_=${Date.now()}`, { cache: 'no-store' });
         }
 
+        async function fetchSquads() {
+            squadsData = {};
+            try {
+                const apiRes = await fetchWithCacheBust(`${API_BASE}/get/squads`);
+                if (apiRes.ok) {
+                    const data = await apiRes.json();
+                    squadsData = data.squads || {};
+                    return;
+                }
+            } catch (err) {
+                console.warn('Squad API fetch failed:', err.message);
+            }
+            try {
+                const staticRes = await fetchWithCacheBust(DATA_URLS.squads);
+                if (staticRes.ok) {
+                    const data = await staticRes.json();
+                    squadsData = data.squads || {};
+                }
+            } catch (err) {
+                console.warn('Squad static fetch failed:', err.message);
+            }
+        }
+
         function isGameFinished(game) {
             const finished = String(game.finished || '').toUpperCase();
             const elapsed = String(game.time_elapsed || '').toLowerCase();
@@ -4000,22 +4023,16 @@
 
         // Load All Data — live scores first, IndexedDB fallback
         async function fetchStaticMeta() {
-            const [teamsRes, stadiumsRes, squadsRes] = await Promise.all([
+            const [teamsRes, stadiumsRes] = await Promise.all([
                 fetchWithCacheBust(DATA_URLS.teams),
-                fetchWithCacheBust(DATA_URLS.stadiums),
-                fetchWithCacheBust(DATA_URLS.squads)
+                fetchWithCacheBust(DATA_URLS.stadiums)
             ]);
+            await fetchSquads();
             if (!teamsRes.ok || !stadiumsRes.ok) {
                 throw new Error('Static meta files not available');
             }
             const teams = await teamsRes.json();
             const stadiums = await stadiumsRes.json();
-            if (squadsRes.ok) {
-                const squads = await squadsRes.json();
-                squadsData = squads.squads || {};
-            } else {
-                squadsData = {};
-            }
             return {
                 teams: teams.teams || [],
                 stadiums: stadiums.stadiums || []
@@ -4076,14 +4093,12 @@
                     fetchWithCacheBust(DATA_URLS.teams),
                     fetchWithCacheBust(DATA_URLS.games),
                     fetchWithCacheBust(DATA_URLS.stadiums),
-                    fetchWithCacheBust(DATA_URLS.groups),
-                    fetchWithCacheBust(DATA_URLS.squads)
+                    fetchWithCacheBust(DATA_URLS.groups)
                 ]);
-                if (responses.slice(0, 4).some(r => !r.ok)) throw new Error('Static data not available');
+                if (responses.some(r => !r.ok)) throw new Error('Static data not available');
 
-                const parsed = await Promise.all(responses.map(r => r.ok ? r.json() : {}));
-                if (parsed[4].squads) squadsData = parsed[4].squads;
-                else squadsData = {};
+                await fetchSquads();
+                const parsed = await Promise.all(responses.map(r => r.json()));
                 applyData(
                     parsed[0].teams || [],
                     parsed[1].games || [],
