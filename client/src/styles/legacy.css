@@ -1166,7 +1166,7 @@
             display: none;
             position: fixed;
             inset: 0;
-            z-index: 1500;
+            z-index: 2100;
             align-items: center;
             justify-content: center;
             padding: 24px 16px;
@@ -1207,6 +1207,14 @@
             border-radius: var(--border-radius);
             box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
             animation: groupFocusZoom 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .group-focus-panel .modal-close {
+            position: sticky;
+            top: 0;
+            float: right;
+            margin: -38px -4px 8px 8px;
+            z-index: 5;
         }
 
         .group-focus-card {
@@ -1821,14 +1829,33 @@
             }
 
             .group-focus-overlay {
-                padding: 10px 8px;
-                padding-bottom: max(10px, env(safe-area-inset-bottom));
+                align-items: flex-start;
+                padding: max(12px, env(safe-area-inset-top)) 10px max(12px, env(safe-area-inset-bottom));
+            }
+
+            body.group-focus-open .tab-bar-container {
+                visibility: hidden;
+                pointer-events: none;
             }
 
             .group-focus-panel {
-                padding: 44px 12px 16px;
-                max-height: calc(100dvh - 20px);
+                padding: 12px 12px 16px;
+                max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
                 border-radius: 16px;
+            }
+
+            .group-focus-panel .modal-close {
+                position: sticky;
+                top: 0;
+                float: right;
+                margin: 0 0 8px 8px;
+                z-index: 5;
+            }
+
+            .group-focus-card .group-header {
+                position: sticky;
+                top: 0;
+                z-index: 4;
             }
 
             .group-focus-matches-head {
@@ -2663,7 +2690,7 @@
 
             .bracket-flex,
             .bracket-side {
-                gap: 10px;
+                gap: 14px;
             }
 
             .bracket-flex {

@@ -75,18 +75,57 @@ export function bracketSlotName(game, side, teams) {
   return shortBracketLabel(label);
 }
 
-function bracketAnchor(el, side, origin) {
-  const r = el.getBoundingClientRect();
-  const cx = r.left + r.width / 2 - origin.left;
-  const cy = r.top + r.height / 2 - origin.top;
-  if (side === 'right') return { x: r.right - origin.left, y: cy };
-  if (side === 'left') return { x: r.left - origin.left, y: cy };
-  if (side === 'top') return { x: cx, y: r.top - origin.top };
-  if (side === 'bottom') return { x: cx, y: r.bottom - origin.top };
+function relRect(el, stageEl) {
+  const box = el.getBoundingClientRect();
+  const origin = stageEl.getBoundingClientRect();
+  return {
+    left: box.left - origin.left,
+    top: box.top - origin.top,
+    right: box.right - origin.left,
+    bottom: box.bottom - origin.top,
+    width: box.width,
+    height: box.height
+  };
+}
+
+function bracketAnchor(el, side, stageEl) {
+  const r = relRect(el, stageEl);
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+  if (side === 'right') return { x: r.right, y: cy };
+  if (side === 'left') return { x: r.left, y: cy };
+  if (side === 'top') return { x: cx, y: r.top };
+  if (side === 'bottom') return { x: cx, y: r.bottom };
   return { x: cx, y: cy };
 }
 
-function bracketLinkPath(k1, k2, parent, origin) {
+function bracketJoinXs(outA, outB, inX, dir, gap) {
+  const outer = dir === 1 ? Math.max(outA, outB) : Math.min(outA, outB);
+  const span = Math.abs(inX - outer);
+  const step = Math.min(gap, Math.max(4, span * 0.42));
+
+  if (dir === 1) {
+    let forkX = outer + step;
+    let stubX = inX - step;
+    if (forkX >= stubX) {
+      const mid = (outer + inX) / 2;
+      forkX = mid - 0.5;
+      stubX = mid + 0.5;
+    }
+    return { forkX, stubX };
+  }
+
+  let forkX = outer - step;
+  let stubX = inX + step;
+  if (forkX <= stubX) {
+    const mid = (outer + inX) / 2;
+    forkX = mid + 0.5;
+    stubX = mid - 0.5;
+  }
+  return { forkX, stubX };
+}
+
+function bracketLinkPath(k1, k2, parent, stageEl, gap) {
   const e1 = document.querySelector(`[data-match-id="${k1}"]`);
   const e2 = document.querySelector(`[data-match-id="${k2}"]`);
   const ep = document.querySelector(`[data-match-id="${parent}"]`);
@@ -94,18 +133,16 @@ function bracketLinkPath(k1, k2, parent, origin) {
 
   const side1 = bracketSideForMatch(k1);
   const side2 = bracketSideForMatch(k2);
-  const gap = 12;
 
   if (side1 === side2) {
     const exit = side1 === 'right' ? 'left' : 'right';
     const enter = side1 === 'right' ? 'right' : 'left';
-    const a = bracketAnchor(e1, exit, origin);
-    const b = bracketAnchor(e2, exit, origin);
-    const p = bracketAnchor(ep, enter, origin);
+    const a = bracketAnchor(e1, exit, stageEl);
+    const b = bracketAnchor(e2, exit, stageEl);
+    const p = bracketAnchor(ep, enter, stageEl);
     const dir = exit === 'right' ? 1 : -1;
-    const forkX = a.x + dir * gap;
+    const { forkX, stubX } = bracketJoinXs(a.x, b.x, p.x, dir, gap);
     const midY = (a.y + b.y) / 2;
-    const stubX = p.x - dir * gap;
     return [
       `M ${a.x} ${a.y} H ${forkX}`,
       `M ${b.x} ${b.y} H ${forkX}`,
@@ -114,9 +151,9 @@ function bracketLinkPath(k1, k2, parent, origin) {
     ].join(' ');
   }
 
-  const a = bracketAnchor(e1, side1 === 'left' ? 'right' : 'left', origin);
-  const b = bracketAnchor(e2, side2 === 'left' ? 'right' : 'left', origin);
-  const p = bracketAnchor(ep, 'bottom', origin);
+  const a = bracketAnchor(e1, side1 === 'left' ? 'right' : 'left', stageEl);
+  const b = bracketAnchor(e2, side2 === 'left' ? 'right' : 'left', stageEl);
+  const p = bracketAnchor(ep, 'bottom', stageEl);
   const midX = p.x;
   const midY = (a.y + b.y) / 2;
   return [`M ${a.x} ${a.y} H ${midX}`, `M ${b.x} ${b.y} H ${midX}`, `M ${midX} ${a.y} V ${b.y}`, `M ${midX} ${midY} V ${p.y}`].join(
@@ -126,14 +163,19 @@ function bracketLinkPath(k1, k2, parent, origin) {
 
 export function drawBracketLinks(stageEl, svgEl) {
   if (!svgEl || !stageEl) return;
-  const origin = stageEl.getBoundingClientRect();
-  svgEl.setAttribute('width', stageEl.offsetWidth);
-  svgEl.setAttribute('height', stageEl.offsetHeight);
-  svgEl.setAttribute('viewBox', `0 0 ${stageEl.offsetWidth} ${stageEl.offsetHeight}`);
+  const w = stageEl.offsetWidth;
+  const h = stageEl.offsetHeight;
+  if (!w || !h) return;
+
+  svgEl.setAttribute('width', String(w));
+  svgEl.setAttribute('height', String(h));
+  svgEl.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+  const gap = w < 900 ? Math.max(5, Math.round(w * 0.012)) : 12;
 
   let paths = '';
   BRACKET_LINKS.forEach(([k1, k2, parent]) => {
-    const d = bracketLinkPath(String(k1), String(k2), String(parent), origin);
+    const d = bracketLinkPath(String(k1), String(k2), String(parent), stageEl, gap);
     if (d) paths += `<path d="${d}" fill="none" stroke="rgba(255,255,255,0.48)" stroke-width="1.4" stroke-linejoin="round"/>`;
   });
   svgEl.innerHTML = paths;

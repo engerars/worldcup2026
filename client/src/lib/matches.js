@@ -124,7 +124,16 @@ export function liveFingerprint(games, groups) {
   return g + '::' + t;
 }
 
+export function isNarrowViewport() {
+  return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+}
+
 export function getMatchesScrollOffset() {
+  const narrow = isNarrowViewport();
+  const tabBar = document.querySelector('.tab-bar-container');
+  if (narrow && tabBar) {
+    return tabBar.getBoundingClientRect().bottom + 8;
+  }
   const tabs = document.querySelector('.page-tabs');
   const tabsH = tabs ? tabs.getBoundingClientRect().height : 0;
   return 68 + tabsH + 16;
@@ -135,7 +144,21 @@ export function scrollToElementWithOffset(el, offset) {
   window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
 }
 
+export function scrollToMatchesListTop(container) {
+  const anchor =
+    container?.closest('.container')?.querySelector('.matches-controls') ||
+    container?.closest('.container')?.querySelector('.section-header') ||
+    container;
+  if (!anchor) return;
+  scrollToElementWithOffset(anchor, getMatchesScrollOffset());
+}
+
 export function scrollToFocusMatch(games, viewMode, container) {
+  if (isNarrowViewport()) {
+    scrollToMatchesListTop(container);
+    return;
+  }
+
   const focus = findFocusMatch(games);
   if (!focus) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -145,7 +168,7 @@ export function scrollToFocusMatch(games, viewMode, container) {
   const root = container || document;
   const el = root.querySelector(`[data-match-id="${String(focus.id)}"]`);
   if (!el) {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToMatchesListTop(container);
     return;
   }
 

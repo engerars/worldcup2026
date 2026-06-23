@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useWorldCup } from '../context/WorldCupContext';
 import { groupCode } from '../lib/groups';
 import { sortGamesForList } from '../lib/matches';
@@ -31,13 +32,15 @@ export function GroupFocusOverlay({ group, onClose }) {
     const onKey = (e) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('group-focus-open');
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
+      document.body.classList.remove('group-focus-open');
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div className="group-focus-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="group-focus-panel" style={{ '--group-header-color': color }}>
         <CloseButton onClose={onClose} />
@@ -74,6 +77,7 @@ export function GroupFocusOverlay({ group, onClose }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

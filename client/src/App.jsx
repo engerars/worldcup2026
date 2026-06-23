@@ -49,6 +49,9 @@ export default function App() {
     if (valid === 'matches') {
       url.hash = '';
       history.replaceState(null, '', url);
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
     } else {
       url.hash = valid;
       history.replaceState(null, '', url);
@@ -168,7 +171,7 @@ export default function App() {
             <p>{t.footer_text}</p>
             <div className="footer-links">
               <a href="/api-docs">{t.footer_api}</a>
-              <a href="https://github.com/jp2435/worldcup2026" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/engerars/worldcup2026" target="_blank" rel="noopener noreferrer">
                 <Icon name="github" size="sm" /> {t.footer_github}
               </a>
             </div>

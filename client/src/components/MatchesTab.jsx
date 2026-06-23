@@ -28,6 +28,7 @@ export function MatchesTab({ updatedLabel, isActive }) {
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('matchesViewMode') || 'list');
   const gridRef = useRef(null);
   const scrollPendingRef = useRef(false);
+  const pendingFocusRef = useRef(null);
   const wasActiveRef = useRef(false);
   const initialFocusDoneRef = useRef(false);
 
@@ -52,6 +53,7 @@ export function MatchesTab({ updatedLabel, isActive }) {
   const focusMatchesTab = useCallback(() => {
     if (!games.length) return;
     const next = focusMatchFilters(games);
+    pendingFocusRef.current = next;
     if (next) {
       setGroupFilter(next.groupFilter);
       setDateFilter(next.dateFilter);
@@ -70,12 +72,17 @@ export function MatchesTab({ updatedLabel, isActive }) {
 
   useEffect(() => {
     if (!scrollPendingRef.current || !isActive || loading) return;
+    const pending = pendingFocusRef.current;
+    if (pending?.dateFilter && pending.dateFilter !== 'all' && dateFilter !== pending.dateFilter) {
+      return;
+    }
+    pendingFocusRef.current = null;
     const id = requestAnimationFrame(() => {
       scrollToFocusMatch(filtered, viewMode, gridRef.current);
       scrollPendingRef.current = false;
     });
     return () => cancelAnimationFrame(id);
-  }, [filtered, viewMode, isActive, loading]);
+  }, [filtered, dateFilter, viewMode, isActive, loading]);
 
   useEffect(() => {
     if (dateFilter !== 'all' && !dateOptions.includes(dateFilter)) setDateFilter('all');

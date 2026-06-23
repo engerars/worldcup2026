@@ -95,20 +95,36 @@ export function BracketTab({ isActive, onTeamClick }) {
   const { games, teams, loading, loadError } = useWorldCup();
   const stageRef = useRef(null);
   const svgRef = useRef(null);
+  const arenaRef = useRef(null);
 
   const scheduleLinks = () => {
     requestAnimationFrame(() => {
       drawBracketLinks(stageRef.current, svgRef.current);
-      setTimeout(() => drawBracketLinks(stageRef.current, svgRef.current), 90);
+      setTimeout(() => drawBracketLinks(stageRef.current, svgRef.current), 120);
+      setTimeout(() => drawBracketLinks(stageRef.current, svgRef.current), 320);
     });
   };
 
   useEffect(() => {
     if (!isActive || loading || !games.length) return;
     scheduleLinks();
-    const onResize = () => setTimeout(scheduleLinks, 120);
+
+    const onResize = () => scheduleLinks();
     window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+
+    const stage = stageRef.current;
+    const arena = arenaRef.current;
+    const observer = stage && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => scheduleLinks()) : null;
+    if (observer && stage) observer.observe(stage);
+
+    const onArenaScroll = () => scheduleLinks();
+    if (arena) arena.addEventListener('scroll', onArenaScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      observer?.disconnect();
+      arena?.removeEventListener('scroll', onArenaScroll);
+    };
   }, [isActive, loading, games, teams]);
 
   if (loading) return <LoadingBlock />;
@@ -128,7 +144,7 @@ export function BracketTab({ isActive, onTeamClick }) {
         <p>{t.bracket_subtitle}</p>
       </div>
       <div id="bracket-board">
-        <div className="bracket-arena">
+        <div className="bracket-arena" ref={arenaRef}>
         <div className="bracket-stage" ref={stageRef}>
           <svg className="bracket-svg" ref={svgRef} aria-hidden="true" />
           <div className="bracket-flex">
