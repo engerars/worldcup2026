@@ -4,46 +4,55 @@ File-backed REST API and web app for the FIFA World Cup 2026 — 48 teams, group
 
 Default deployment:
 - No MongoDB
-- Source data stored in `data/source/*.json`
+- Source data in `data/source/*.json`
 - Public JSON exported to `public/data/*.json`
-- Live scores synced through `/get/games` and `/get/groups`
+- Live scores via `/get/games`, `/get/groups`, and `/get/live`
 
 ## Web app (Vite + React)
 
-The UI lives in `client/` (React 19 + Vite 6). Production build outputs to `public/` (same URL as before — Express still serves `public/`).
+The UI lives in `client/` (React 19 + Vite 6). Production build outputs to `public/` (same URLs as before — Express still serves `public/`).
 
 | Tab | Features |
 |-----|----------|
 | **Home** | Countdown, stats, hero |
 | **Live** | Matches in progress with live badge |
-| **Matches** | Schedule by date; auto-scrolls to live, today's unfinished, or next upcoming fixture |
+| **Matches** | Schedule by date (list/grid); desktop auto-scrolls to live, today's unfinished, or next fixture; mobile keeps filters and scrolls to the list top |
 | **Teams** | 48 team cards; click to open squad modal (head coach + 26 players) |
-| **Groups** | Standings for all 12 groups (**A–L**, sorted) |
-| **Bracket** | Knockout bracket; click a team to open group standings with highlight |
+| **Groups** | Standings for all 12 groups (**A–L**, sorted); click a group for a focus panel with standings + that group's matches |
+| **Bracket** | Knockout bracket with SVG connectors; click a team to open group standings with highlight |
 | **Stadiums** | 16 host venues with photos |
 
 **Data loading:** `WorldCupProvider` polls `/get/live` every **15s**; squads from `/get/squads` (fallback `/data/squads.json`); teams/stadiums from static JSON. IndexedDB caches all datasets for offline fallback.
 
+**Mobile (≤768px):** fixed tab bar below the header; Groups focus panel portals above the chrome; Bracket scrolls horizontally inside its frame.
+
 ### Frontend commands
 
 ```bash
-# API on :3050, Vite dev server on :5173 (proxies /get and /data)
+# Terminal 1 — API on :3050
 npm start
+
+# Terminal 2 — Vite dev server on :5173 (proxies /get and /data)
 npm run dev:client
 
 # Production bundle → public/index.html + public/assets/*
 npm run build:client
 ```
 
-Source layout:
+`build:client` runs `scripts/gen-client-index.js` (sync SEO head from `public/index.html` → `client/index.html`), Vite build, then `scripts/cleanup-legacy-js.js`.
 
-```
+### Frontend source layout
+
+```text
 client/src/
-  App.jsx              # hash routing, header, tabs
-  context/             # data + live polling
-  components/          # tab panels, modals, match cards
-  lib/                 # matches, bracket, API, IndexedDB
-  styles/legacy.css    # original SPA styles
+  App.jsx                 # hash routing, header, tab bar
+  context/WorldCupContext.jsx
+  components/
+    HomeTab, LiveTab, MatchesTab, TeamsTab, GroupsTab
+    GroupFocusOverlay.jsx # group detail panel
+    BracketTab, StadiumsTab, Modals.jsx, GroupTable.jsx, shared.jsx
+  lib/                    # matches, bracket, groups, API, IndexedDB, teams
+  styles/legacy.css       # app styles (incl. bracket, groups, mobile)
 ```
 
 ## API endpoints
@@ -88,6 +97,7 @@ Each squad has **26 players** (official FIFA list) sorted by position (GK → DE
 
 ```bash
 npm install
+npm run build:client   # required once before serving the React UI from public/
 npm start
 ```
 
@@ -95,11 +105,13 @@ Open:
 - `http://localhost:3050` — web app
 - `http://localhost:3050/api-docs` — Swagger (if `ENABLE_SWAGGER=true`)
 
-> `npm run dev` runs on port **3051**. Use `npm start` for the default **3050**.
+For UI development with hot reload, use `npm run dev:client` alongside `npm start` and open `http://localhost:5173`.
+
+> `npm run dev` runs the API on port **3051**. Use `npm start` for the default **3050**.
 
 ## Environment
 
-Create `.env.development` or `.env.production` to override defaults.
+Copy `.env.example` to `.env.development` or `.env.production` to override defaults.
 
 ```env
 NODE_ENV=development
@@ -117,17 +129,21 @@ RATE_LIMIT_MAX=500
 CORS_ORIGINS=*
 ```
 
+Optional live validation tuning: `LIVE_VALIDATE_*` (see `.env.example`).
+
 ## Scripts
 
-```bash
-npm start              # Local server on PORT (default 3050)
-npm run dev            # Development on port 3051
-npm run prod           # NODE_ENV=production
-npm run export:data    # Export data/source/*.json → public/data/
-npm run import:squads  # Fetch official squads from Wikipedia (FIFA-sourced)
-npm test               # Unit tests (store, live payload validation)
-npm run test:load      # Simple load test
-```
+| Command | Description |
+|---------|-------------|
+| `npm start` | API on `PORT` (default 3050) |
+| `npm run dev` | API on port 3051 |
+| `npm run prod` | `NODE_ENV=production` |
+| `npm run build:client` | Build React app → `public/` |
+| `npm run dev:client` | Vite dev server (:5173) |
+| `npm run export:data` | Export `data/source/*.json` → `public/data/` |
+| `npm run import:squads` | Fetch squads from Wikipedia → `data/source/squads.json` |
+| `npm test` | Unit tests (`scripts/run-tests.js`) |
+| `npm run test:load` | Simple HTTP load test (`scripts/load-test.js`) |
 
 ### Updating squad data
 
@@ -142,9 +158,9 @@ npm run import:squads   # → data/source/squads.json, public/data/squads.json
 ## Data flow
 
 1. `server.js` loads env, bootstraps data, and exports the Express app (Vercel entrypoint + local `npm start`).
-2. In file mode, `data/store.js` loads bundled `data/source/*.json` files.
+2. In file mode, `data/store.js` loads `data/source/*.json` (paths in `data/sourcePaths.js`).
 3. `data/store.js` exports browser-ready copies to `public/data/` (teams, games, groups, stadiums, squads).
-4. `data/liveSync.js` polls the public feed; payloads are validated in `data/validateLiveData.js` before `setLiveData()` writes files.
+4. `data/liveSync.js` polls the upstream feed; payloads are validated in `data/validateLiveData.js` before `setLiveData()` writes files.
 5. `controllers/getController.js` serves the read API.
 
 ## Project structure
@@ -153,62 +169,61 @@ npm run import:squads   # → data/source/squads.json, public/data/squads.json
 worldcup2026/
 |-- server.js                 # Express entry (local listen + Vercel export)
 |-- lib/
-|   |-- expressApp.js       # Express app factory
-|   `-- bootstrap.js        # File-mode startup (export + live sync)
+|   |-- expressApp.js         # Express app factory
+|   `-- bootstrap.js          # File-mode startup (export + live sync)
 |-- vercel.json
 |-- config/
 |   |-- env.js
 |   |-- liveValidate.js
-|   `-- swagger.js          # OpenAPI / Swagger UI
+|   `-- swagger.js            # OpenAPI / Swagger UI
 |-- controllers/
 |   |-- index.js
 |   |-- getController.js
 |   |-- healthController.js
 |   `-- seoController.js
 |-- data/
-|   |-- source/             # Canonical datasets (teams, matches, groups, …)
+|   |-- source/               # Canonical datasets
 |   |   |-- teams.json
 |   |   |-- matches.json
 |   |   |-- matchtables.json
 |   |   |-- stadiums.json
 |   |   `-- squads.json
-|   |-- sourcePaths.js      # Shared paths for store + scripts
+|   |-- import/               # Legacy CSV sources (gitignored)
+|   |-- sourcePaths.js
 |   |-- store.js
 |   |-- liveSync.js
-|   `-- validateLiveData.js # Reject bad upstream live payloads
+|   `-- validateLiveData.js
 |-- tests/
-|   `-- api.test.js         # node:test — store + validation
+|   `-- api.test.js
 |-- scripts/
+|   |-- gen-client-index.js
+|   |-- cleanup-legacy-js.js
 |   |-- import-wikipedia-squads.js
 |   |-- load-test.js
+|   |-- run-tests.js
 |   `-- fetch-stadiums.js
-|-- client/                 # Vite + React source
+|-- client/                   # Vite + React source
 |   |-- src/
-|   |   |-- App.jsx
-|   |   |-- context/WorldCupContext.jsx
-|   |   |-- components/
-|   |   |-- lib/
-|   |   `-- styles/legacy.css
-|   |-- index.html          # dev shell (SEO head synced from public on build)
+|   |-- index.html
 |   `-- vite.config.js
-|-- public/
-|   |-- index.html          # built SPA (Vite output)
-|   |-- assets/             # hashed JS/CSS bundles
-|   |-- data/               # exported JSON for browser + CDN
+|-- public/                   # Built SPA + static assets + exported JSON
+|   |-- index.html
+|   |-- assets/
+|   |-- data/
 |   |-- stadiums/{id}.jpg
 |   `-- trophy.png
-`-- legacy/mongodb/         # Legacy MongoDB code (not used in file mode)
+`-- legacy/mongodb/           # Legacy MongoDB stack (not used in file mode)
 ```
 
 ## Notes
 
 - `legacy/mongodb/` holds the old MongoDB stack (auth, donations, imports). It is **not mounted** in file-mode deployment — see `legacy/mongodb/README.md`.
-- Frontend is **Vite + React** (`client/`); `npm run build:client` writes bundles to `public/`. English-only UI.
-- Live sync validates upstream games/groups (shape, counts, known team IDs) before overwriting local JSON. Tune via `LIVE_VALIDATE_*` in `.env.example`.
+- Frontend is **Vite + React** (`client/`); `npm run build:client` writes hashed bundles to `public/assets/`. English-only UI.
+- Live sync validates upstream games/groups (shape, counts, known team IDs) before overwriting local JSON.
 - `npm test` runs `scripts/run-tests.js` (no shell globs — works on Windows/PowerShell).
 - `GET /health` reports file storage status and memory usage.
-- Squad staff currently lists **head coach only** (Wikipedia/FIFA source); assistant coaches are not in the public squad lists.
-- On Vercel (`VERCEL=1`), storage is read-only — live sync writes are disabled; run `npm run import:squads` locally and commit updated JSON.
+- Squad staff lists **head coach only** (Wikipedia/FIFA source).
+- On Vercel (`VERCEL=1`), storage is read-only — background file writes are disabled; run `npm run import:squads` locally and commit updated JSON.
 
 ## Deploy on Vercel
 
@@ -220,16 +235,16 @@ This project includes a serverless entry point for [Vercel](https://vercel.com).
 |---------|-------|
 | Framework Preset | **Other** |
 | Root Directory | `.` (repo root) |
-| Build Command | `npm run build:client` (also set in `vercel.json`) |
-| Output Directory | *(leave empty — Vercel auto-serves `public/`)* |
-| Install Command | `npm install` (Vercel also runs `npm install --prefix client` via `vercel.json`) |
+| Build Command | `npm run build:client` (set in `vercel.json`) |
+| Output Directory | *(leave empty — static files served from `public/` via Express)* |
+| Install Command | `npm install` (+ `npm install --prefix client` via `vercel.json`) |
 | Node.js Version | **20.x** |
 
-> **Important:** If you see a yellow **Production Overrides** banner, remove any override for Build Command or Output Directory (e.g. `dist`). Those stale overrides cause 404/500 on `/`.
+> **Important:** Remove stale **Production Overrides** for Build Command or Output Directory (e.g. `dist`). Wrong overrides cause 404/500 on `/`.
 
 ### Environment variables
 
-Set these in **Project → Settings → Environment Variables** (Production):
+Set in **Project → Settings → Environment Variables** (Production):
 
 ```env
 NODE_ENV=production
@@ -243,32 +258,32 @@ CORS_ORIGINS=*
 
 ### Deploy steps
 
-1. Import the GitHub repo (`engerars/worldcup2026`) in the Vercel dashboard.
+1. Import the GitHub repo in the Vercel dashboard.
 2. Apply the dashboard settings above.
-3. Deploy — no build step required.
+3. Deploy — Vercel runs `npm run build:client` then serves via `server.js`.
 
 ### Routing
 
-Vercel runs `server.js` (via `"main"`) as the Node entrypoint. Express serves everything:
+Vercel runs `server.js` (via `"main"`) as the Node entrypoint. Express serves:
 
 | URL | Handler |
 |-----|---------|
-| `/`, `/data/*`, `/stadiums/*`, `/trophy.png` | Express static middleware → `public/` |
+| `/`, `/data/*`, `/stadiums/*`, `/trophy.png` | Static middleware → `public/` |
 | `/get/*`, `/health`, `/sitemap.xml`, `/api-docs` | Express API routes |
 
 ### How Vercel mode works
 
 - `VERCEL=1` is set automatically → read-only storage (no background file writes).
 - Source JSON (`data/source/*.json`) is bundled with the serverless function for API reads.
-- Live scores: frontend polls `/get/live`; serverless may fetch fresh data from `LIVE_SYNC_URL` on each request (throttled in-memory).
-- Local dev uses `app.listen()`; on Vercel the exported Express app handles requests without listening on a port.
+- Live scores: frontend polls `/get/live`; serverless may fetch from `LIVE_SYNC_URL` on demand (throttled in-memory).
+- Local dev uses `app.listen()`; on Vercel the exported Express app handles requests without binding a port.
 
 ### Smoke test after deploy
 
 ```text
 GET /                          → 200 HTML (web app)
 GET /data/games.json           → 200 JSON
-GET /data/squads.json          → 200 JSON (48 teams)
+GET /data/squads.json          → 200 JSON
 GET /get/teams                 → 200 JSON
 GET /get/team/1                → 200 JSON (Mexico + squad)
 GET /get/squad/47              → 200 JSON (Ghana squad)
@@ -276,8 +291,9 @@ GET /get/live                  → 200 JSON
 GET /health                    → 200 JSON, platform: "vercel"
 ```
 
-Local development is unchanged:
+Local development:
 
 ```bash
 npm start
+npm run dev:client   # optional — UI hot reload on :5173
 ```
