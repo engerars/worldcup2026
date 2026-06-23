@@ -2,8 +2,8 @@
  * Simple Load Test Script for World Cup 2026 API
  * Tests API performance under high load (200+ requests/second)
  * 
- * Usage: node load-test.js [url] [requests] [concurrency]
- * Example: node load-test.js http://localhost:3050/get/teams 1000 200
+ * Usage: node scripts/load-test.js [url] [requests] [concurrency]
+ * Example: node scripts/load-test.js http://localhost:3050/get/teams 1000 200
  */
 
 const http = require('http');

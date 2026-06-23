@@ -2,5 +2,6 @@
 legacy/
 .history/
 load-test.js
+scripts/load-test.js
 test-server.js
 create-mongodb-user.js

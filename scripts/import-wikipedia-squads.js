@@ -1,12 +1,13 @@
 /**
  * Import official 2026 World Cup squads from Wikipedia (FIFA-sourced)
- * and write football.squads.json + public/data/squads.json directly.
+ * and write data/source/squads.json + public/data/squads.json directly.
  * Run: npm run import:squads
  */
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
+const { SOURCE_FILES } = require('../data/sourcePaths');
 const WIKI_URL = 'https://en.wikipedia.org/w/index.php?title=2026_FIFA_World_Cup_squads&action=raw';
 const SKIP_SECTIONS = new Set([
     'Age',
@@ -96,7 +97,7 @@ function resolveTeamId(wikiName, byName) {
 }
 
 async function main() {
-    const teams = JSON.parse(fs.readFileSync(path.join(ROOT, 'football.teams.json'), 'utf8'));
+    const teams = JSON.parse(fs.readFileSync(SOURCE_FILES.teams, 'utf8'));
     const byName = buildTeamIdMap(teams);
 
     console.log('Fetching Wikipedia squads…');
@@ -136,7 +137,7 @@ async function main() {
         stats.push({ wikiName, teamId, players: players.length, coach });
     });
 
-    const outRoot = path.join(ROOT, 'football.squads.json');
+    const outRoot = SOURCE_FILES.squads;
     const outPublic = path.join(ROOT, 'public', 'data', 'squads.json');
     fs.writeFileSync(outRoot, JSON.stringify(squads, null, 2));
     fs.mkdirSync(path.dirname(outPublic), { recursive: true });

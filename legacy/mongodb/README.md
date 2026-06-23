@@ -20,6 +20,6 @@ This directory contains the **pre–file-mode** implementation. It is **not moun
 
 ## Active deployment
 
-Use `football.*.json` + `data/store.js` + `/get/*` routes at the repo root.
+Use `data/source/*.json` + `data/store.js` + `/get/*` routes at the repo root.
 
 Do not add new features here unless you are explicitly reviving MongoDB mode.

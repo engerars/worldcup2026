@@ -3,6 +3,7 @@ const mongoose = require('../database');
 const Game = require('../models/game');
 const Team = require('../models/team');
 const fs = require('fs');
+const { SOURCE_FILES } = require('../../../data/sourcePaths');
 
 async function importMatches() {
     try {
@@ -19,7 +20,7 @@ async function importMatches() {
         
         console.log('Reading matches file...');
         const matchesData = JSON.parse(
-            fs.readFileSync('./football.matches.json', 'utf8')
+            fs.readFileSync(SOURCE_FILES.matches, 'utf8')
         );
         
         console.log(`Found ${matchesData.length} matches to import`);

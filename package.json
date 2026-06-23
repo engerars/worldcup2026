@@ -15,7 +15,9 @@
     "export:data": "node -e \"require('./data/store').exportPublicData()\"",
     "import:squads": "node scripts/import-wikipedia-squads.js",
     "test": "node scripts/run-tests.js",
-    "test:load": "node load-test.js"
+    "test:load": "node scripts/load-test.js",
+    "build:client": "node scripts/gen-client-index.js && npm install --prefix client && npm run build --prefix client && node scripts/cleanup-legacy-js.js",
+    "dev:client": "npm install --prefix client && npm run dev --prefix client"
   },
   "keywords": [
     "fifa-world-cup-2026",

@@ -2,6 +2,7 @@ require('dotenv').config();
 const mongoose = require('../database');
 const Group = require('../models/group');
 const fs = require('fs');
+const { SOURCE_FILES } = require('../../../data/sourcePaths');
 
 async function importMatchTables() {
     try {
@@ -18,7 +19,7 @@ async function importMatchTables() {
         
         console.log('Reading match tables file...');
         const matchTablesData = JSON.parse(
-            fs.readFileSync('./football.matchtables.json', 'utf8')
+            fs.readFileSync(SOURCE_FILES.matchtables, 'utf8')
         );
         
         console.log(`Found ${matchTablesData.length} groups to import`);

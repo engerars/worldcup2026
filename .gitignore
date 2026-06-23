@@ -1,4 +1,5 @@
 node_modules/
+client/node_modules/
 .history/
 .DS_Store
 .vscode/
@@ -12,5 +13,4 @@ build/
 !.env.example
 
 # Legacy CSV/JSON import sources (not used by file-mode runtime)
-worldcup2026.*.csv
-worldcup2026.groups.json
+data/import/worldcup2026.*

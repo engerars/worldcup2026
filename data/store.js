@@ -2,16 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const { loadEnvConfig } = require('../config/env');
 const { validateLivePayload } = require('./validateLiveData');
-
-const ROOT = path.join(__dirname, '..');
+const { SOURCE_FILES } = require('./sourcePaths');
 
 // Static requires so Vercel/Node bundlers include JSON in the serverless bundle
-const SOURCE_FILES = {
-    teams: require('../football.teams.json'),
-    games: require('../football.matches.json'),
-    groups: require('../football.matchtables.json'),
-    stadiums: require('../football.stadiums.json'),
-    squads: require('../football.squads.json')
+const BUNDLED_SOURCE = {
+    teams: require('./source/teams.json'),
+    games: require('./source/matches.json'),
+    groups: require('./source/matchtables.json'),
+    stadiums: require('./source/stadiums.json'),
+    squads: require('./source/squads.json')
 };
 
 function normalizeMongoJson(value) {
@@ -23,8 +22,8 @@ function normalizeMongoJson(value) {
     });
 }
 
-function loadJson(filename) {
-    const raw = fs.readFileSync(path.join(ROOT, filename), 'utf8');
+function loadJson(filePath) {
+    const raw = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(raw, (key, value) => {
         if (value && typeof value === 'object' && value.$oid) {
             return value.$oid;
@@ -36,20 +35,20 @@ function loadJson(filename) {
 function loadSourceData() {
     try {
         return {
-            teams: loadJson('football.teams.json'),
-            games: loadJson('football.matches.json'),
-            groups: loadJson('football.matchtables.json'),
-            stadiums: loadJson('football.stadiums.json'),
-            squads: loadJson('football.squads.json')
+            teams: loadJson(SOURCE_FILES.teams),
+            games: loadJson(SOURCE_FILES.matches),
+            groups: loadJson(SOURCE_FILES.matchtables),
+            stadiums: loadJson(SOURCE_FILES.stadiums),
+            squads: loadJson(SOURCE_FILES.squads)
         };
     } catch (err) {
         if (err.code !== 'ENOENT') throw err;
         return {
-            teams: normalizeMongoJson(SOURCE_FILES.teams),
-            games: normalizeMongoJson(SOURCE_FILES.games),
-            groups: normalizeMongoJson(SOURCE_FILES.groups),
-            stadiums: normalizeMongoJson(SOURCE_FILES.stadiums),
-            squads: normalizeMongoJson(SOURCE_FILES.squads)
+            teams: normalizeMongoJson(BUNDLED_SOURCE.teams),
+            games: normalizeMongoJson(BUNDLED_SOURCE.games),
+            groups: normalizeMongoJson(BUNDLED_SOURCE.groups),
+            stadiums: normalizeMongoJson(BUNDLED_SOURCE.stadiums),
+            squads: normalizeMongoJson(BUNDLED_SOURCE.squads)
         };
     }
 }
@@ -105,13 +104,13 @@ function setLiveData({ games, groups }) {
 
     if (games) {
         fs.writeFileSync(
-            path.join(ROOT, 'football.matches.json'),
+            SOURCE_FILES.matches,
             JSON.stringify(cache.games, null, 2)
         );
     }
     if (groups) {
         fs.writeFileSync(
-            path.join(ROOT, 'football.matchtables.json'),
+            SOURCE_FILES.matchtables,
             JSON.stringify(cache.groups, null, 2)
         );
     }
@@ -223,7 +222,7 @@ function exportPublicData(quiet) {
         return;
     }
 
-    const outDir = path.join(ROOT, 'public', 'data');
+    const outDir = path.join(__dirname, '..', 'public', 'data');
     if (!fs.existsSync(outDir)) {
         fs.mkdirSync(outDir, { recursive: true });
     }
@@ -231,7 +230,7 @@ function exportPublicData(quiet) {
     const storeData = getStore();
     let squads = storeData.squads || {};
     try {
-        squads = loadJson('football.squads.json');
+        squads = loadJson(SOURCE_FILES.squads);
         storeData.squads = squads;
     } catch (_) {
         /* keep in-memory squads if file missing */

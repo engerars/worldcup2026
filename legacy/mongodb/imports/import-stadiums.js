@@ -2,6 +2,7 @@ require('dotenv').config();
 const mongoose = require('../database');
 const Stadium = require('../models/stadium');
 const fs = require('fs');
+const { SOURCE_FILES } = require('../../../data/sourcePaths');
 
 async function importStadiums() {
     try {
@@ -18,7 +19,7 @@ async function importStadiums() {
         
         console.log('Reading stadiums file...');
         const stadiumsData = JSON.parse(
-            fs.readFileSync('./football.stadiums.json', 'utf8')
+            fs.readFileSync(SOURCE_FILES.stadiums, 'utf8')
         );
         
         console.log(`Found ${stadiumsData.length} stadiums to import`);
