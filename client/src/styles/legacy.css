@@ -1201,7 +1201,7 @@
             width: min(920px, 100%);
             max-height: min(92vh, 900px);
             overflow: auto;
-            padding: 52px 20px 22px;
+            padding: 16px 16px 22px;
             background: var(--bg-card);
             border: 1px solid var(--border-light);
             border-radius: var(--border-radius);
@@ -1209,21 +1209,75 @@
             animation: groupFocusZoom 0.34s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .group-focus-panel .modal-close {
-            position: sticky;
-            top: 0;
-            float: right;
-            margin: -38px -4px 8px 8px;
-            z-index: 5;
-        }
-
         .group-focus-card {
             margin-bottom: 22px;
             box-shadow: var(--shadow-card);
+            overflow: hidden;
+            border-radius: var(--border-radius);
         }
 
         .group-focus-card .group-header {
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            border-radius: 0;
+            padding: 16px 18px;
+            gap: 12px;
+        }
+
+        .group-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .group-focus-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            margin: 0;
+            padding: 0;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+            cursor: pointer;
+            line-height: 0;
+            flex-shrink: 0;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+        }
+
+        .group-focus-close svg {
+            display: block;
+            width: 14px;
+            height: 14px;
+        }
+
+        .group-focus-close:hover {
+            background: rgba(255, 255, 255, 0.24);
+            border-color: rgba(255, 255, 255, 0.45);
+        }
+
+        .group-focus-close:active {
+            transform: scale(0.94);
+        }
+
+        .group-focus-close:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+        }
+
+        .group-focus-card .group-table-wrap {
+            border-top: none;
+        }
+
+        .group-focus-card .group-table th {
+            letter-spacing: 0.02em;
+            padding: 11px 3px;
+        }
+
+        .group-focus-card .group-table th:nth-child(2) {
+            padding-left: 12px;
         }
 
         .group-focus-matches-head {
@@ -1839,23 +1893,32 @@
             }
 
             .group-focus-panel {
-                padding: 12px 12px 16px;
+                padding: 12px 10px 16px;
                 max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(24px, env(safe-area-inset-bottom)));
                 border-radius: 16px;
-            }
-
-            .group-focus-panel .modal-close {
-                position: sticky;
-                top: 0;
-                float: right;
-                margin: 0 0 8px 8px;
-                z-index: 5;
             }
 
             .group-focus-card .group-header {
                 position: sticky;
                 top: 0;
                 z-index: 4;
+                padding: 14px 14px;
+            }
+
+            .group-focus-close {
+                width: 32px;
+                height: 32px;
+                border-radius: 9px;
+            }
+
+            .group-focus-card .group-table th {
+                font-size: 0.56rem;
+                letter-spacing: 0;
+                padding: 9px 2px;
+            }
+
+            .group-focus-card .group-table th:nth-child(2) {
+                padding-left: 8px;
             }
 
             .group-focus-matches-head {

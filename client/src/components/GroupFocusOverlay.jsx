@@ -8,16 +8,6 @@ import { Icon, NoDataIcon } from './Icon';
 import { GroupTable } from './GroupTable';
 import { MatchListRow } from './shared';
 
-function CloseButton({ onClose }) {
-  return (
-    <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
-      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-      </svg>
-    </button>
-  );
-}
-
 export function GroupFocusOverlay({ group, onClose }) {
   const { games, teams, stadiums } = useWorldCup();
   const code = groupCode(group);
@@ -43,15 +33,21 @@ export function GroupFocusOverlay({ group, onClose }) {
   return createPortal(
     <div className="group-focus-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="group-focus-panel" style={{ '--group-header-color': color }}>
-        <CloseButton onClose={onClose} />
         <div className="group-card group-focus-card">
           <div className="group-header">
             <span className="group-header-title">
               <Icon name="ball" size="sm" className="ui-icon-white" /> {t.group} {code}
             </span>
-            <span className="group-icon">
-              <Icon name="trophy" size="sm" className="ui-icon-white" />
-            </span>
+            <div className="group-header-actions">
+              <span className="group-icon" aria-hidden="true">
+                <Icon name="trophy" size="sm" className="ui-icon-white" />
+              </span>
+              <button type="button" className="group-focus-close" onClick={onClose} aria-label="Close">
+                <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M1.5 1.5l11 11M12.5 1.5l-11 11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
           </div>
           <div className="group-table-wrap">
             <GroupTable groupTeams={group.teams || []} teams={teams} />
