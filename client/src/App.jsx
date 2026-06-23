@@ -118,7 +118,7 @@ export default function App() {
       ) : null}
 
       <main className="main-content">
-        <div className="container">
+        <div className="container tab-bar-container">
           <div className="page-tabs" role="tablist">
             {pageTabs.map((tab) => (
               <button
