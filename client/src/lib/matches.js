@@ -1,3 +1,5 @@
+import { enrichGameKickoff, getKickoffTimestamp } from './matchTime.js';
+
 export function isGameFinished(game) {
   const finished = String(game.finished || '').toUpperCase();
   const elapsed = String(game.time_elapsed || '').toLowerCase();
@@ -23,7 +25,7 @@ export function sortGamesForDisplay(games) {
     };
     const diff = rank(a) - rank(b);
     if (diff !== 0) return diff;
-    return String(a.local_date || '').localeCompare(String(b.local_date || ''));
+    return parseGameDateTime(a).timestamp - parseGameDateTime(b).timestamp;
   });
 }
 
@@ -32,21 +34,16 @@ export function sortGamesForList(games) {
 }
 
 export function parseGameDateTime(game) {
-  const local = game.local_date || '';
-  const m = local.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
-  if (!m) {
+  const timestamp = getKickoffTimestamp(game);
+  if (!timestamp) {
     return { timestamp: 0, dateKey: 'unknown', timeLabel: '--:--' };
   }
-  const month = +m[1];
-  const day = +m[2];
-  const year = +m[3];
-  const hour = +m[4];
-  const min = +m[5];
-  return {
-    timestamp: new Date(year, month - 1, day, hour, min).getTime(),
-    dateKey: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-    timeLabel: `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`
-  };
+
+  const dt = new Date(timestamp);
+  const dateKey = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+  const timeLabel = dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+  return { timestamp, dateKey, timeLabel };
 }
 
 export function getLocalTodayKey() {
@@ -58,7 +55,7 @@ export function formatMatchDateHeader(dateKey) {
   if (dateKey === 'unknown') return 'All Matches';
   const [y, mo, d] = dateKey.split('-');
   const dt = new Date(+y, +mo - 1, +d);
-  return dt.toLocaleDateString('en-US', {
+  return dt.toLocaleDateString(undefined, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -67,13 +64,24 @@ export function formatMatchDateHeader(dateKey) {
 }
 
 export function formatMatchDateShort(game) {
-  const { dateKey } = parseGameDateTime(game);
-  if (dateKey === 'unknown') return '';
-  const [y, mo, d] = dateKey.split('-');
-  return new Date(+y, +mo - 1, +d).toLocaleDateString('en-US', {
+  const timestamp = getKickoffTimestamp(game);
+  if (!timestamp) return '';
+  return new Date(timestamp).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
     year: 'numeric'
+  });
+}
+
+export function formatMatchDeviceDateTime(game) {
+  const timestamp = getKickoffTimestamp(game);
+  if (!timestamp) return game.local_date || '';
+  return new Date(timestamp).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   });
 }
 
@@ -187,3 +195,5 @@ export function focusMatchFilters(games) {
     dateFilter: dateKey !== 'unknown' ? dateKey : 'all'
   };
 }
+
+export { enrichGameKickoff };

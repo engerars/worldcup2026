@@ -3,6 +3,7 @@ const path = require('path');
 const { loadEnvConfig } = require('../config/env');
 const { validateLivePayload } = require('./validateLiveData');
 const { SOURCE_FILES } = require('./sourcePaths');
+const { enrichGameKickoff } = require('../lib/matchTime');
 
 // Static requires so Vercel/Node bundlers include JSON in the serverless bundle
 const BUNDLED_SOURCE = {
@@ -175,7 +176,7 @@ function getAllGames() {
             enriched.away_team_name_en = teamMap[game.away_team_id].name_en;
             enriched.away_team_name_fa = teamMap[game.away_team_id].name_fa;
         }
-        return enriched;
+        return enrichGameKickoff(enriched);
     });
 }
 

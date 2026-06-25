@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { isGameFinished, isGameLive, shouldShowScore, parseGameDateTime, formatMatchDateShort } from '../lib/matches';
+import {
+  isGameFinished,
+  isGameLive,
+  shouldShowScore,
+  parseGameDateTime,
+  formatMatchDateShort,
+  formatMatchDeviceDateTime
+} from '../lib/matches';
 import { flagSrc, flagOnError, findTeam, findStadium } from '../lib/teams';
 import { t } from '../i18n';
 import { Icon } from './Icon';
@@ -45,7 +52,7 @@ export function MatchCard({ game, teams, stadiums, index = 0 }) {
         </div>
       )}
       <div className="match-info">
-        <span>{game.local_date || ''}</span>
+        <span>{formatMatchDeviceDateTime(game)}</span>
         <span className="match-stadium">
           <Icon name="stadium" size="xs" /> {stadium.name_en || ''}
         </span>
